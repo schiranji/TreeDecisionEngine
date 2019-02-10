@@ -72,14 +72,19 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   private List<ProcessorResponse> processRules() {
+    long startTime = System.currentTimeMillis();
     if(!processPreRequisite(ruleEngineData)) {
+      System.out.println("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
       return null;
     }
     List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
     for (Rule rule : rules) {
       rule.process(ruleEngineData, result);
+      result.setAuditTime();
+      System.out.println("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):"+result.getAudit().getTimespan());
       results.add(result);
     }
+    System.out.println("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
     return results;
   }
   

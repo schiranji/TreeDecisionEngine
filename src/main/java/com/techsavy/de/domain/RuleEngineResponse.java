@@ -1,15 +1,22 @@
 package com.techsavy.de.domain;
 
-import java.io.Serializable;
 import java.util.List;
 
-public class RuleEngineResponse implements Serializable {
+public class RuleEngineResponse implements Response {
 
   private static final long serialVersionUID = -5054894114864253976L;
   List<ProcessorResponse> processorResults;
   Audit audit;
 
   private RuleEngineResponse() { 
+  }
+  
+  public static RuleEngineResponse getInstance() {
+    Audit audit = new Audit();
+    audit.setStartTime(System.currentTimeMillis());
+    RuleEngineResponse ruleResult = new RuleEngineResponse();
+    ruleResult.setAudit(audit);
+    return ruleResult;
   }
   
   public List<ProcessorResponse> getProcessorResults() {
@@ -26,5 +33,11 @@ public class RuleEngineResponse implements Serializable {
 
   public void setAudit(Audit audit) {
     this.audit = audit;
+  }
+
+  @Override
+  public void setAuditTime() {
+    audit.setEndTime(System.currentTimeMillis());
+    
   }
 }

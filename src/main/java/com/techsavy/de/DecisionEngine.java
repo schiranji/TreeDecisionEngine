@@ -10,8 +10,9 @@ import java.util.concurrent.Executors;
 
 import org.yaml.snakeyaml.Yaml;
 
-import com.techsavy.de.domain.RuleEngineRequest;
 import com.techsavy.de.domain.ProcessorResponse;
+import com.techsavy.de.domain.RuleEngineRequest;
+import com.techsavy.de.domain.RuleEngineResponse;
 import com.techsavy.de.processor.BaseAbstractProcessor;
 import com.techsavy.de.processor.BaseProcessor;
 import com.techsavy.de.util.ObjectUtil;
@@ -39,9 +40,10 @@ public class DecisionEngine {
     return argProcessorMap;
   }
   
-  private static List<ProcessorResponse> process(RuleEngineRequest ruleData) {
+  private static RuleEngineResponse process(RuleEngineRequest ruleData) {
     ExecutorService executor = null;
     try {
+      RuleEngineResponse ruleEngineResponse = RuleEngineResponse.getInstance();
       ProcessorResponse result = ProcessorResponse.getInstance();
       BaseProcessor processor = new BaseProcessor();
       Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleData, 0);
@@ -51,7 +53,9 @@ public class DecisionEngine {
       printMap(map, "");
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
       processor.process(executor, ruleData, result, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
-      return results;
+      ruleEngineResponse.setProcessorResults(results);
+      ruleEngineResponse.setAuditTime();
+      return ruleEngineResponse;
     } catch(Throwable t) {
       t.printStackTrace();
       return null;
@@ -60,7 +64,8 @@ public class DecisionEngine {
     }
   }
   
-  private static List<ProcessorResponse> processSequentially(RuleEngineRequest ruleData) throws Exception {
+  private static RuleEngineResponse processSequentially(RuleEngineRequest ruleData) throws Exception {
+    RuleEngineResponse ruleEngineResponse = RuleEngineResponse.getInstance();
     ProcessorResponse result = ProcessorResponse.getInstance();
     BaseProcessor processor = new BaseProcessor();
     Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleData, 0);
@@ -69,7 +74,9 @@ public class DecisionEngine {
     printMap(map, "");
     List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
     processor.processSequentially(ruleData, result, results, map, 0);
-    return results;
+    ruleEngineResponse.setProcessorResults(results);
+    ruleEngineResponse.setAuditTime();
+    return ruleEngineResponse;
   }
   
   private static int mapSize = 0;
@@ -108,13 +115,13 @@ public class DecisionEngine {
   
   public static void main(String[] args) throws Exception {
     RuleEngineRequest ruleData = new RuleEngineRequest();
-    long startTime = System.currentTimeMillis();
-    List<ProcessorResponse> results = process(ruleData);
-    System.out.println("Milti Threading time(millis):"+(System.currentTimeMillis()-startTime));
+    RuleEngineResponse ruleEngineResponse = process(ruleData);
+    List<ProcessorResponse> results = ruleEngineResponse.getProcessorResults();
+    System.out.println("Milti Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
     printResults(results);
-    startTime = System.currentTimeMillis();
-    List<ProcessorResponse> resultsSeq = processSequentially(ruleData);
-    System.out.println("Single Threading time(millis):"+(System.currentTimeMillis()-startTime));
+    ruleEngineResponse = processSequentially(ruleData);
+    List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResults();
+    System.out.println("Single Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
     printResults(resultsSeq);
   }
 }
