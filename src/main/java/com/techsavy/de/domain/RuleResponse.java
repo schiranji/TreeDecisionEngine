@@ -1,21 +1,23 @@
 package com.techsavy.de.domain;
 
-public class RuleResult implements Response {
+public class RuleResponse implements Response {
 
   private static final long serialVersionUID = 8508197356680409469L;
   private Audit audit;
   
-  public static RuleResult getInstance() {
+  private RuleResponse() { 
+  }
+  
+  public static RuleResponse getInstance() {
     Audit audit = new Audit();
     audit.setStartTime(System.currentTimeMillis());
-    RuleResult ruleResult = new RuleResult();
+    RuleResponse ruleResult = new RuleResponse();
     ruleResult.setAudit(audit);
     return ruleResult;
   }
   
-  public RuleResult populateAudit() {
+  public void setAuditTime() {
     getAudit().setEndTime(System.currentTimeMillis());
-    return this;
   }
 
   public Audit getAudit() {

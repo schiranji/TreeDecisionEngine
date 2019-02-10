@@ -41,4 +41,10 @@ public class Audit implements Serializable {
   public void setEndTime(long endTime) {
     this.endTime = endTime;
   }
+  public long getTimespan() {
+    if(startTime == 0 || endTime == 0) {
+      throw new RuntimeException("Missing start/end time.");
+    }
+    return (endTime - startTime);
+  }
 }

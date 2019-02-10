@@ -1,9 +1,9 @@
 package com.techsavy.de.processor;
 
-import com.techsavy.de.domain.RuleEngineData;
-import com.techsavy.de.domain.ProcessorResult;
+import com.techsavy.de.domain.RuleEngineRequest;
+import com.techsavy.de.domain.ProcessorResponse;
 
 @FunctionalInterface
 public interface Rule {
-  public void process(RuleEngineData ruleData, ProcessorResult ruleEngineResult);
+  public void process(RuleEngineRequest ruleData, ProcessorResponse ruleEngineResult);
 }

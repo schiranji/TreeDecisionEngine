@@ -2,7 +2,7 @@ package com.techsavy.de.domain;
 
 import java.util.Map;
 
-public class ProcessorResult implements Response {
+public class ProcessorResponse implements Response {
 
   private static final long serialVersionUID = -7819915903074744197L;
   
@@ -12,19 +12,18 @@ public class ProcessorResult implements Response {
   private Map<String, String> decisionArrivalSteps;
   private Audit audit;
   
-  private ProcessorResult() {
-    
+  private ProcessorResponse() { 
   }
   
-  public static ProcessorResult getInstance() {
+  public static ProcessorResponse getInstance() {
     Audit audit = new Audit();
     audit.setStartTime(System.currentTimeMillis());
-    ProcessorResult ruleResult = new ProcessorResult();
+    ProcessorResponse ruleResult = new ProcessorResponse();
     ruleResult.setAudit(audit);
     return ruleResult;
   }
   
-  public void setAudit() {
+  public void setAuditTime() {
     getAudit().setEndTime(System.currentTimeMillis());
   }
   

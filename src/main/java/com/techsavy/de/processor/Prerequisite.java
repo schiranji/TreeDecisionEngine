@@ -1,8 +1,8 @@
 package com.techsavy.de.processor;
 
-import com.techsavy.de.domain.RuleEngineData;
+import com.techsavy.de.domain.RuleEngineRequest;
 
 @FunctionalInterface
 public interface Prerequisite {
-  public boolean process(RuleEngineData ruleData);
+  public boolean process(RuleEngineRequest ruleData);
 }
