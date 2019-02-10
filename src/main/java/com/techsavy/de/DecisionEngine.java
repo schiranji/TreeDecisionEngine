@@ -100,7 +100,7 @@ public class DecisionEngine {
     if(results != null) {
       System.out.println("**** Results Start ***");
       for(RuleEngineResult result : results) {
-        System.out.println("Score:"+result.getScore());
+        System.out.println("Processor:"+result.getProcessor()+", Decision:"+result.getDecision()+", Score:"+result.getScore());
       }
       System.out.println("**** Results End ***");
     }

@@ -1,7 +1,11 @@
 com.techsavy.de.processor.BaseProcessor:
   com.techsavy.de.processor.loan.auto.MasterAutoApprovalProcecssor:
     com.techsavy.de.processor.loan.auto.AutoApprovalProcecssorBank1:
-      com.techsavy.de.processor.loan.auto.AutoApprovalProcecssorBank2:
+    com.techsavy.de.processor.loan.auto.AutoApprovalProcecssorBank2:
   com.techsavy.de.processor.loan.home.MasterHomeApprovalProcessor:
     com.techsavy.de.processor.loan.home.HomeApprovalProcessorBank1:
-      com.techsavy.de.processor.loan.home.HomeApprovalProcessorBank2:
+    com.techsavy.de.processor.loan.home.HomeApprovalProcessorBank2:
+  com.techsavy.de.processor.bankA.MasterApprovalProcecssorBankA:
+    com.techsavy.de.processor.bankA.AutoApprovalProcecssorBankA:
+    com.techsavy.de.processor.bankA.HomeApprovalProcessorBankA:
+    com.techsavy.de.processor.bankA.LoanApprovalProcessorBankA:

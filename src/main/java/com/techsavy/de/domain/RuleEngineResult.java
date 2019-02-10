@@ -6,6 +6,7 @@ public class RuleEngineResult implements Response {
 
   private static final long serialVersionUID = -7819915903074744197L;
   
+  private String processor;
   private int score;
   private String decision;
   private Map<String, String> decisionArrivalSteps;
@@ -30,5 +31,11 @@ public class RuleEngineResult implements Response {
   @Override
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
+  }
+  public String getProcessor() {
+    return processor;
+  }
+  public void setProcessor(String processor) {
+    this.processor = processor;
   }
 }

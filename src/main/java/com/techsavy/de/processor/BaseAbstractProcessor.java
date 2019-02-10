@@ -43,8 +43,11 @@ public abstract class BaseAbstractProcessor implements Callable<List<RuleEngineR
       processors.add(processor);
       try {
         List<RuleEngineResult> iterResults = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
-        if(iterResults != null && iterResults.size() > 0) {
-          if(isLeafNode(processor.childProcessorMap)) { results.addAll(iterResults); } //Add only leaf node results
+        if(iterResults != null && !iterResults.isEmpty()) {
+          if(isLeafNode(processor.childProcessorMap) || stopCondition()) { //Add only leaf node results
+            iterResults.get(0).setProcessor(processor.getClass().getName());
+            results.addAll(iterResults); 
+          } 
           process(executor, ruleEngineData, iterResults.get(0), results,
               processor.childProcessorMap, (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
         }
@@ -105,7 +108,8 @@ public abstract class BaseAbstractProcessor implements Callable<List<RuleEngineR
       List<RuleEngineResult> iterResults = processor.processRules();
       if(iterResults != null && iterResults.size() > 0) {
         processor.processSequentially(ruleEngineData, clonedResult, results, childProcessors, (depth+1));
-        if(isLeafNode(childProcessors) || stopCondition()) { 
+        if(isLeafNode(childProcessors) || stopCondition()) {
+          iterResults.get(0).setProcessor(processor.getClass().getName());
           results.addAll(iterResults);
         }
       }
