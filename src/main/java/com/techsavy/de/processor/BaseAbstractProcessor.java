@@ -14,21 +14,29 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.SerializationUtils;
 
 import com.techsavy.de.domain.RuleEngineData;
-import com.techsavy.de.domain.RuleEngineResult;
+import com.techsavy.de.domain.ProcessorResult;
 import com.techsavy.de.util.ObjectUtil;
 
-public abstract class BaseAbstractProcessor implements Callable<List<RuleEngineResult>> {
+public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResult>> {
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
   public RuleEngineData ruleEngineData;
-  public RuleEngineResult result;
+  public ProcessorResult result;
   public Map<String, Object> childProcessorMap;
   public int depth = 0;
   protected List<Rule> rules = new ArrayList<Rule>();
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
-  protected Future<List<RuleEngineResult>> processorFuture;
+  protected Future<List<ProcessorResult>> processorFuture;
  
+  public void setProcessorData(BaseAbstractProcessor processor, RuleEngineData argRuleEngineData, ProcessorResult argResult,
+      Map<String, Object> argProcessorMap, int depth) {
+    processor.ruleEngineData = argRuleEngineData;
+    processor.result = argResult;
+    processor.childProcessorMap = argProcessorMap;
+    processor.depth = depth;
+  }
+  
   @SuppressWarnings("unchecked")
-  public List<RuleEngineResult> process(ExecutorService executor, RuleEngineData ruleEngineData, RuleEngineResult result, List<RuleEngineResult> results,
+  public List<ProcessorResult> process(ExecutorService executor, RuleEngineData ruleEngineData, ProcessorResult result, List<ProcessorResult> results,
       Map<String, Object> argProcessorMap, int depth, int maxWaitTimeSeconds) {
     if(isLeafNode(argProcessorMap) || stopCondition()) {
       return results;
@@ -37,12 +45,12 @@ public abstract class BaseAbstractProcessor implements Callable<List<RuleEngineR
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      RuleEngineResult clonedResult = (RuleEngineResult) SerializationUtils.clone(result);
-      ObjectUtil.setProcessorData(processor, ruleEngineData, clonedResult, childProcessors, depth);
+      ProcessorResult clonedResult = (ProcessorResult) SerializationUtils.clone(result);
+      processor.setProcessorData(processor, ruleEngineData, clonedResult, childProcessors, depth);
       processorFuture = executor.submit(processor);
       processors.add(processor);
       try {
-        List<RuleEngineResult> iterResults = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
+        List<ProcessorResult> iterResults = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
         if(iterResults != null && !iterResults.isEmpty()) {
           if(isLeafNode(processor.childProcessorMap) || stopCondition()) { //Add only leaf node results
             iterResults.get(0).setProcessor(processor.getClass().getName());
@@ -59,15 +67,15 @@ public abstract class BaseAbstractProcessor implements Callable<List<RuleEngineR
   }
   
   @Override
-  public List<RuleEngineResult> call() throws Exception {
+  public List<ProcessorResult> call() throws Exception {
     return processRules();
   }
 
-  private List<RuleEngineResult> processRules() {
+  private List<ProcessorResult> processRules() {
     if(!processPreRequisite(ruleEngineData)) {
       return null;
     }
-    List<RuleEngineResult> results = new ArrayList<RuleEngineResult>();
+    List<ProcessorResult> results = new ArrayList<ProcessorResult>();
     for (Rule rule : rules) {
       rule.process(ruleEngineData, result);
       results.add(result);
@@ -95,7 +103,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<RuleEngineR
   }
 
   @SuppressWarnings("unchecked")
-  public List<RuleEngineResult> processSequentially(RuleEngineData ruleEngineData, RuleEngineResult result, List<RuleEngineResult> results,
+  public List<ProcessorResult> processSequentially(RuleEngineData ruleEngineData, ProcessorResult result, List<ProcessorResult> results,
       Map<String, Object> argProcessorMap, int depth) {
     if(isLeafNode(argProcessorMap)) {
       return results;
@@ -103,9 +111,9 @@ public abstract class BaseAbstractProcessor implements Callable<List<RuleEngineR
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      RuleEngineResult clonedResult = (RuleEngineResult) SerializationUtils.clone(result);
-      ObjectUtil.setProcessorData(processor, ruleEngineData, clonedResult, childProcessors, depth);
-      List<RuleEngineResult> iterResults = processor.processRules();
+      ProcessorResult clonedResult = (ProcessorResult) SerializationUtils.clone(result);
+      processor.setProcessorData(processor, ruleEngineData, clonedResult, childProcessors, depth);
+      List<ProcessorResult> iterResults = processor.processRules();
       if(iterResults != null && iterResults.size() > 0) {
         processor.processSequentially(ruleEngineData, clonedResult, results, childProcessors, (depth+1));
         if(isLeafNode(childProcessors) || stopCondition()) {

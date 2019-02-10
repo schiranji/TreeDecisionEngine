@@ -13,8 +13,9 @@ public class RuleResult implements Response {
     return ruleResult;
   }
   
-  public static void setAudit(RuleResult ruleResult) {
-    ruleResult.getAudit().setEndTime(System.currentTimeMillis());
+  public RuleResult populateAudit() {
+    getAudit().setEndTime(System.currentTimeMillis());
+    return this;
   }
 
   public Audit getAudit() {

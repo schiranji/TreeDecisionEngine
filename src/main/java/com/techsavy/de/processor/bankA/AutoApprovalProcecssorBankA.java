@@ -5,6 +5,14 @@ import com.techsavy.de.processor.BaseProcessor;
 public class AutoApprovalProcecssorBankA extends BaseProcessor {
 
   @Override
+  protected void buildPrerequistes() {
+    prerequisites.add((ruleEngineData1) -> {
+      System.out.println(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Prerequiste1: Score: "+" depth:"+depth );
+      return true;
+    });
+  }
+  
+  @Override
   protected void buildRules() {
     rules.add((ruleEngineData1, result2) -> { 
       System.out.println(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Rule1: Score: "+result2.getScore() +" depth:"+depth); 

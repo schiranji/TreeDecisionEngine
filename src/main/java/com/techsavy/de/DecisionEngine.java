@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 import org.yaml.snakeyaml.Yaml;
 
 import com.techsavy.de.domain.RuleEngineData;
-import com.techsavy.de.domain.RuleEngineResult;
+import com.techsavy.de.domain.ProcessorResult;
 import com.techsavy.de.processor.BaseAbstractProcessor;
 import com.techsavy.de.processor.BaseProcessor;
 import com.techsavy.de.util.ObjectUtil;
@@ -29,7 +29,7 @@ public class DecisionEngine {
     Map<String, Object> processorMap = new HashMap<String, Object>();
     for (String key : argProcessorMap.keySet()) {
       BaseAbstractProcessor processor = (BaseAbstractProcessor)ObjectUtil.getInstanceByName(key);
-      ObjectUtil.setProcessorData(processor, ruleEngineData, new RuleEngineResult(), processorMap, depth);
+      processor.setProcessorData(processor, ruleEngineData, ProcessorResult.getInstance(), processorMap, depth);
       if (argProcessorMap.get(key) != null) {
         processorMap.put(key, processor);
       } else {
@@ -39,17 +39,17 @@ public class DecisionEngine {
     return argProcessorMap;
   }
   
-  private static List<RuleEngineResult> process(RuleEngineData ruleData) {
+  private static List<ProcessorResult> process(RuleEngineData ruleData) {
     ExecutorService executor = null;
     try {
-      RuleEngineResult result = new RuleEngineResult();
+      ProcessorResult result = ProcessorResult.getInstance();
       BaseProcessor processor = new BaseProcessor();
       Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleData, 0);
-      ObjectUtil.setProcessorData(processor, ruleData, result, map, 0);
+      processor.setProcessorData(processor, ruleData, result, map, 0);
       setMapSize(map);
       executor = Executors.newFixedThreadPool(mapSize);
       printMap(map, "");
-      List<RuleEngineResult> results = new ArrayList<RuleEngineResult>();
+      List<ProcessorResult> results = new ArrayList<ProcessorResult>();
       processor.process(executor, ruleData, result, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
       return results;
     } catch(Throwable t) {
@@ -60,14 +60,14 @@ public class DecisionEngine {
     }
   }
   
-  private static List<RuleEngineResult> processSequentially(RuleEngineData ruleData) throws Exception {
-    RuleEngineResult result = new RuleEngineResult();
+  private static List<ProcessorResult> processSequentially(RuleEngineData ruleData) throws Exception {
+    ProcessorResult result = ProcessorResult.getInstance();
     BaseProcessor processor = new BaseProcessor();
     Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleData, 0);
-    ObjectUtil.setProcessorData(processor, ruleData, result, map, 0);
+    processor.setProcessorData(processor, ruleData, result, map, 0);
     setMapSize(map);
     printMap(map, "");
-    List<RuleEngineResult> results = new ArrayList<RuleEngineResult>();
+    List<ProcessorResult> results = new ArrayList<ProcessorResult>();
     processor.processSequentially(ruleData, result, results, map, 0);
     return results;
   }
@@ -96,10 +96,10 @@ public class DecisionEngine {
     }
   }
   
-  private static void printResults(List<RuleEngineResult> results) {
+  private static void printResults(List<ProcessorResult> results) {
     if(results != null) {
       System.out.println("**** Results Start ***");
-      for(RuleEngineResult result : results) {
+      for(ProcessorResult result : results) {
         System.out.println("Processor:"+result.getProcessor()+", Decision:"+result.getDecision()+", Score:"+result.getScore());
       }
       System.out.println("**** Results End ***");
@@ -109,11 +109,11 @@ public class DecisionEngine {
   public static void main(String[] args) throws Exception {
     RuleEngineData ruleData = new RuleEngineData();
     long startTime = System.currentTimeMillis();
-    List<RuleEngineResult> results = process(ruleData);
+    List<ProcessorResult> results = process(ruleData);
     System.out.println("Milti Threading time(millis):"+(System.currentTimeMillis()-startTime));
     printResults(results);
     startTime = System.currentTimeMillis();
-    List<RuleEngineResult> resultsSeq = processSequentially(ruleData);
+    List<ProcessorResult> resultsSeq = processSequentially(ruleData);
     System.out.println("Single Threading time(millis):"+(System.currentTimeMillis()-startTime));
     printResults(resultsSeq);
   }

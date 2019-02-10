@@ -2,7 +2,7 @@ package com.techsavy.de.domain;
 
 import java.util.Map;
 
-public class RuleEngineResult implements Response {
+public class ProcessorResult implements Response {
 
   private static final long serialVersionUID = -7819915903074744197L;
   
@@ -10,6 +10,24 @@ public class RuleEngineResult implements Response {
   private int score;
   private String decision;
   private Map<String, String> decisionArrivalSteps;
+  private Audit audit;
+  
+  private ProcessorResult() {
+    
+  }
+  
+  public static ProcessorResult getInstance() {
+    Audit audit = new Audit();
+    audit.setStartTime(System.currentTimeMillis());
+    ProcessorResult ruleResult = new ProcessorResult();
+    ruleResult.setAudit(audit);
+    return ruleResult;
+  }
+  
+  public void setAudit() {
+    getAudit().setEndTime(System.currentTimeMillis());
+  }
+  
   public int getScore() {
     return score;
   }
@@ -37,5 +55,13 @@ public class RuleEngineResult implements Response {
   }
   public void setProcessor(String processor) {
     this.processor = processor;
+  }
+
+  public Audit getAudit() {
+    return audit;
+  }
+
+  public void setAudit(Audit audit) {
+    this.audit = audit;
   }
 }

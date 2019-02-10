@@ -1,6 +1,10 @@
 package com.techsavy.de.domain;
 
-public class Audit {
+import java.io.Serializable;
+
+public class Audit implements Serializable {
+
+  private static final long serialVersionUID = -6623128721174316332L;
   private String type; //Processor/Rule
   private String name; //Processor or Rule name
   private String auditText; //Any text in JSON to log.
