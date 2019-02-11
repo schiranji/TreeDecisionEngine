@@ -12,12 +12,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang3.SerializationUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import com.techsavy.de.domain.RuleEngineRequest;
 import com.techsavy.de.domain.ProcessorResponse;
+import com.techsavy.de.domain.RuleEngineRequest;
 import com.techsavy.de.util.ObjectUtil;
 
 public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>> {
+  protected static final Logger log = LogManager.getLogger();
+  private static final Logger auditLog = LogManager.getLogger("auditlog");
+  
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
   public RuleEngineRequest ruleEngineData;
   public ProcessorResponse result;
@@ -74,17 +79,19 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   private List<ProcessorResponse> processRules() {
     long startTime = System.currentTimeMillis();
     if(!processPreRequisite(ruleEngineData)) {
-      System.out.println("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
+      auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
       return null;
     }
     List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
     for (Rule rule : rules) {
+      long ruleStartTime = System.nanoTime();
       rule.process(ruleEngineData, result);
-      result.setAuditTime();
-      System.out.println("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):"+result.getAudit().getTimespan());
-      results.add(result);
+      auditLog.info("Rule: Timespan(nanos):"+(System.nanoTime()-ruleStartTime));
     }
-    System.out.println("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
+    result.setAuditTime();
+    auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):"+result.getAudit().getTimespan());
+    results.add(result);
+    auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
     return results;
   }
   

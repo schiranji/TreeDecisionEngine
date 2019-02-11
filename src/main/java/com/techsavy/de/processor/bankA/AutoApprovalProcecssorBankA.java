@@ -7,7 +7,7 @@ public class AutoApprovalProcecssorBankA extends BaseProcessor {
   @Override
   protected void buildPrerequistes() {
     prerequisites.add((ruleEngineData1) -> {
-      System.out.println(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Prerequiste1: Score: "+" depth:"+depth );
+      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Prerequiste1: Score: "+" depth:"+depth);
       return true;
     });
   }
@@ -15,7 +15,7 @@ public class AutoApprovalProcecssorBankA extends BaseProcessor {
   @Override
   protected void buildRules() {
     rules.add((ruleEngineData1, result2) -> { 
-      System.out.println(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Rule1: Score: "+result2.getScore() +" depth:"+depth); 
+      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Rule1: Score: "+result2.getScore() +" depth:"+depth); 
       result2.setScore(result2.getScore()+1);
     });
   }

@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import com.techsavy.de.domain.ProcessorResponse;
@@ -18,6 +20,8 @@ import com.techsavy.de.processor.BaseProcessor;
 import com.techsavy.de.util.ObjectUtil;
 
 public class DecisionEngine {
+  private static final Logger log = LogManager.getLogger();
+  private static final Logger auditLog = LogManager.getLogger("auditlog");
   private static final int PROCESSOR_MAX_WAIT_TIME = 5;
   private static Map<String, Object> processorNamesMap;
   static {
@@ -96,7 +100,7 @@ public class DecisionEngine {
   private static void printMap(Map<String, Object> argProcessorMap, String indentation) {
     for(String key: argProcessorMap.keySet()) {
       Object val = argProcessorMap.get(key);
-      //System.out.println(indentation + key);
+      log.debug(indentation + key);
       if(val instanceof Map) {
         printMap((Map<String, Object>)val, indentation + "  ");
       }
@@ -105,23 +109,25 @@ public class DecisionEngine {
   
   private static void printResults(List<ProcessorResponse> results) {
     if(results != null) {
-      System.out.println("**** Results Start ***");
+      log.debug("**** Results Start ***");
       for(ProcessorResponse result : results) {
-        System.out.println("Processor:"+result.getProcessor()+", Decision:"+result.getDecision()+", Score:"+result.getScore());
+        log.debug("Processor:"+result.getProcessor()+", Decision:"+result.getDecision()+", Score:"+result.getScore());
       }
-      System.out.println("**** Results End ***");
+      log.debug("**** Results End ***");
     }
   }
   
   public static void main(String[] args) throws Exception {
+    System.out.println("Started...");
     RuleEngineRequest ruleData = new RuleEngineRequest();
     RuleEngineResponse ruleEngineResponse = process(ruleData);
     List<ProcessorResponse> results = ruleEngineResponse.getProcessorResults();
-    System.out.println("Milti Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
+    auditLog.info("Milti Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
     printResults(results);
     ruleEngineResponse = processSequentially(ruleData);
     List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResults();
-    System.out.println("Single Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
+    auditLog.info("Single Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
     printResults(resultsSeq);
+    System.out.println("Done...");
   }
 }
