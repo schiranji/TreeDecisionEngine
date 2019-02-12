@@ -1,11 +1,10 @@
 # TreeDecisionEngine
-Rule based Decision engine where Rules are organized in Tree model. Goal of this project is to keep adding intelligence by adding single concept at a time. As a start added processors examples for decisioning loan/credit card/home/lineof credit applications.
+Rule based Decision engine where Rules are organized in Tree model. Goal of this project is to keep adding intelligence by adding single concept/tree branch/intelligence at a time. As a start added processors examples for decisioning loan/credit card/home/lineof credit applications.
 * Processors can be added dynamically using yml tree structure. Decision Engine reads all processors and executes rules in each processor based on the tree structure defined in processors.yml.
 * Decisions are generated only by leaf nodes or stop condition in inside node.
 * Once stop condition is reached, rest of the sub tree is ignored and the decision is added to the list.
 * Engine can run in either single threaded or multi threaded mode.
-
-Engine will return list of Results based on processor rules.
+* Engine will return list of Results based on processor rules.
 
 Tasks
 - [ ] Use InheritableThreadLocal for RuleEngineData.
