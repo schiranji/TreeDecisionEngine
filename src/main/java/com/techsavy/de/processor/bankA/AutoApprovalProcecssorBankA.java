@@ -10,6 +10,10 @@ public class AutoApprovalProcecssorBankA extends BaseProcessor {
       log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Prerequiste1: Score: "+" depth:"+depth);
       return true;
     });
+    prerequisites.add((ruleEngineData1) -> {
+      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Prerequiste2: Score: "+" depth:"+depth);
+      return true;
+    });
   }
   
   @Override
@@ -18,6 +22,17 @@ public class AutoApprovalProcecssorBankA extends BaseProcessor {
       log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Rule1: Score: "+result2.getScore() +" depth:"+depth); 
       result2.setScore(result2.getScore()+1);
     });
-  }
+    rules.add((ruleEngineData1, result2) -> { 
+      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Rule2: Score: "+result2.getScore() +" depth:"+depth); 
+      result2.setScore(result2.getScore()+1);
+    });
+    rules.add((ruleEngineData1, result2) -> { 
+      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Rule3: Score: "+result2.getScore() +" depth:"+depth); 
+      result2.setScore(result2.getScore()+1);
+    });
+    rules.add((ruleEngineData1, result2) -> { 
+      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBankA:Rule4: Score: "+result2.getScore() +" depth:"+depth); 
+      result2.setScore(result2.getScore()+1);
+    });}
 
 }

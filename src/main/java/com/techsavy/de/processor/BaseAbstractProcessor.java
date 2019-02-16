@@ -1,6 +1,7 @@
 package com.techsavy.de.processor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -30,7 +31,6 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   public int depth = 0;
   protected List<Rule> rules = new ArrayList<Rule>();
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
-  protected Future<List<ProcessorResponse>> processorFuture;
  
   public void setProcessorData(BaseAbstractProcessor processor, RuleEngineRequest argRuleEngineData, ProcessorResponse argResult,
       Map<String, Object> argProcessorMap, int depth) {
@@ -46,15 +46,18 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     if(isLeafNode(argProcessorMap) || stopCondition()) {
       return results;
     }
-    List<BaseAbstractProcessor> processors = new ArrayList<BaseAbstractProcessor>();
+    Map<BaseAbstractProcessor, Future<List<ProcessorResponse>>> processors = new HashMap<BaseAbstractProcessor, Future<List<ProcessorResponse>>>();
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
       ProcessorResponse clonedResult = (ProcessorResponse) SerializationUtils.clone(result);
       processor.setProcessorData(processor, ruleEngineData, clonedResult, childProcessors, depth);
-      processorFuture = executor.submit(processor);
-      processors.add(processor);
+      Future<List<ProcessorResponse>> processorFuture = executor.submit(processor);
+      processors.put(processor, processorFuture);  
+    }
+    for(BaseAbstractProcessor processor:processors.keySet()) {
       try {
+        Future<List<ProcessorResponse>> processorFuture = processors.get(processor);
         List<ProcessorResponse> iterResults = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
         if(iterResults != null && !iterResults.isEmpty()) {
           if(isLeafNode(processor.childProcessorMap) || stopCondition()) { //Add only leaf node results
@@ -66,7 +69,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
         }
       } catch (ExecutionException | TimeoutException | InterruptedException e) {
         throw new RuntimeException("Error while retrieving processor results. "+processor.getClass().getName(), e);
-      }    
+      }  
     }
     return results;
   }
@@ -86,7 +89,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     for (Rule rule : rules) {
       long ruleStartTime = System.nanoTime();
       rule.process(ruleEngineData, result);
-      auditLog.info("Rule: Timespan(nanos):"+(System.nanoTime()-ruleStartTime));
+      auditLog.info("Rule: Timespan(micro):"+(System.nanoTime()-ruleStartTime)/1000);
     }
     result.setAuditTime();
     auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):"+result.getAudit().getTimespan());

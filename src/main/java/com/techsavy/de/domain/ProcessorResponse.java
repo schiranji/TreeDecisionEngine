@@ -45,10 +45,6 @@ public class ProcessorResponse implements Response {
   public void setDecisionArrivalSteps(Map<String, String> decisionArrivalSteps) {
     this.decisionArrivalSteps = decisionArrivalSteps;
   }
-  @Override
-  public Object clone() throws CloneNotSupportedException {
-    return super.clone();
-  }
   public String getProcessor() {
     return processor;
   }
