@@ -1,24 +1,28 @@
 package com.techsavy.de.processor.loan.auto;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.techsavy.de.processor.BaseProcessor;
 
 public class AutoApprovalProcecssorBank1 extends BaseProcessor {
-
+  private static final Logger log = LogManager.getLogger();
+  
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineData1) -> {
-      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBank1:Prerequiste1: Score: "+" depth:"+depth );
+    prerequisites.add((ruleEngineRequest) -> {
+      log.debug("Processing AutoApprovalProcecssorBank1:Prerequiste1: Score: "+" depth:"+depth );
       return true;
     });
   }
   
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineData1, result2) -> 
+    rules.add((ruleEngineRequest, ruleEngineResponse) -> 
     { 
-      log.debug(Thread.currentThread().getName()+", Processing AutoApprovalProcecssorBank1:Rule1: Score: "+result2.getScore() +" depth:"+depth); 
-      result2.setScore(result2.getScore()+1);
-      result2.setDecision("DECLINED");
+      log.debug("Processing AutoApprovalProcecssorBank1:Rule1: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
+      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
+      ruleEngineResponse.setDecision("DECLINED");
     });
   }
 

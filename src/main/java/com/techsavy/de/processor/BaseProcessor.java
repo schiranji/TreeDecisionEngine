@@ -1,7 +1,10 @@
 package com.techsavy.de.processor;
 
-public class BaseProcessor extends BaseAbstractProcessor {
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+public class BaseProcessor extends BaseAbstractProcessor {
+  private static final Logger log = LogManager.getLogger();
   public BaseProcessor() {
     buildPrerequistes();
     buildRules();

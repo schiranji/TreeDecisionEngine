@@ -21,7 +21,6 @@ import com.techsavy.de.domain.RuleEngineRequest;
 import com.techsavy.de.util.ObjectUtil;
 
 public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>> {
-  protected static final Logger log = LogManager.getLogger();
   private static final Logger auditLog = LogManager.getLogger("auditlog");
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;

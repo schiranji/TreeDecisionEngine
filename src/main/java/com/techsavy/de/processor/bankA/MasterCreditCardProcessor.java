@@ -1,23 +1,28 @@
 package com.techsavy.de.processor.bankA;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.techsavy.de.processor.BaseAbstractProcessor;
 
 public class MasterCreditCardProcessor extends BaseAbstractProcessor {
+  private static final Logger log = LogManager.getLogger();
+  
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineData1) -> {
-      log.debug(Thread.currentThread().getName()+", Processing MasterCreditCardProcessor:Prerequiste1: Score: "+" depth:"+depth );
+    prerequisites.add((ruleEngineRequest) -> {
+      log.debug("Processing MasterCreditCardProcessor:Prerequiste1: Score: "+" depth:"+depth );
       return true;
     });
   }
 
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineData1, result2) -> 
+    rules.add((ruleEngineRequest, ruleEngineResponse) -> 
     { 
-      log.debug(Thread.currentThread().getName()+", Processing MasterCreditCardProcessor:Rule1: Score: "+result2.getScore() +" depth:"+depth); 
-      result2.setScore(result2.getScore()+1);
-      result2.setDecision("DECLINED");
+      log.debug("Processing MasterCreditCardProcessor:Rule1: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
+      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
+      ruleEngineResponse.setDecision("DECLINED");
     });
   }
 }
