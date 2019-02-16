@@ -1,6 +1,7 @@
 package com.techsavy.de.domain;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class Audit implements Serializable {
 
@@ -8,6 +9,7 @@ public class Audit implements Serializable {
   private String type; //Processor/Rule
   private String name; //Processor or Rule name
   private String auditText; //Any text in JSON to log.
+  private Map<String, String> auditMap;
   private long startTime;
   private long endTime;
   
@@ -46,5 +48,11 @@ public class Audit implements Serializable {
       throw new RuntimeException("Missing start/end time.");
     }
     return (endTime - startTime);
+  }
+  public Map<String, String> getAuditMap() {
+    return auditMap;
+  }
+  public void setAuditMap(Map<String, String> auditMap) {
+    this.auditMap = auditMap;
   }
 }
