@@ -1,4 +1,4 @@
-package com.techsavy.de.processor.loan.home;
+package com.techsavy.de.processor.sample.loan.home;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

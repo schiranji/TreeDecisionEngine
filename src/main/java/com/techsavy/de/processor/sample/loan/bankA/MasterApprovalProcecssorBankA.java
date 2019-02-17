@@ -1,4 +1,4 @@
-package com.techsavy.de.processor.bankA;
+package com.techsavy.de.processor.sample.loan.bankA;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +20,7 @@ public class MasterApprovalProcecssorBankA extends BaseProcessor {
   protected void buildRules() {
     rules.add((ruleEngineRequest, ruleEngineResponse) -> {
       log.debug("Processing MasterApprovalProcecssorBankA:Rule1: Score: "+ruleEngineResponse.getScore()+" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+ruleEngineData.i);
+      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
     });
   }
 }

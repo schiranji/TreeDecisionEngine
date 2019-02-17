@@ -1,4 +1,4 @@
-package com.techsavy.de.processor.loan.auto;
+package com.techsavy.de.processor.sample.loan.auto;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,9 +18,9 @@ public class MasterAutoApprovalProcecssor extends BaseProcessor {
 
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> {
-      log.debug("Processing MasterAutoApprovalProcecssor:Rule1: Score: "+ruleEngineResponse.getScore()+" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+ruleEngineData.i);
+    rules.add((ruleEngineRequest, processorResponse) -> {
+      log.debug("Processing MasterAutoApprovalProcecssor:Rule1: Score: "+processorResponse.getScore()+" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
     });
   }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 public class RuleEngineResponse implements Response {
 
   private static final long serialVersionUID = -5054894114864253976L;
-  List<ProcessorResponse> processorResults;
+  List<ProcessorResponse> processorResponses;
   Audit audit;
 
   private RuleEngineResponse() { 
@@ -14,17 +14,17 @@ public class RuleEngineResponse implements Response {
   public static RuleEngineResponse getInstance() {
     Audit audit = new Audit();
     audit.setStartTime(System.currentTimeMillis());
-    RuleEngineResponse ruleResult = new RuleEngineResponse();
-    ruleResult.setAudit(audit);
-    return ruleResult;
+    RuleEngineResponse ruleEngineResponse = new RuleEngineResponse();
+    ruleEngineResponse.setAudit(audit);
+    return ruleEngineResponse;
   }
   
-  public List<ProcessorResponse> getProcessorResults() {
-    return processorResults;
+  public List<ProcessorResponse> getProcessorResponses() {
+    return processorResponses;
   }
 
-  public void setProcessorResults(List<ProcessorResponse> processorResults) {
-    this.processorResults = processorResults;
+  public void setProcessorResponses(List<ProcessorResponse> processorResponses) {
+    this.processorResponses = processorResponses;
   }
 
   public Audit getAudit() {

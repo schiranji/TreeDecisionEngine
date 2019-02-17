@@ -20,9 +20,9 @@ public class BaseProcessor extends BaseAbstractProcessor {
   
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineData1, result2) -> { 
-      log.debug(Thread.currentThread().getName()+", Processing BaseProcessor:Rule1: Score: "+result2.getScore() +" depth:"+depth); 
-      result2.setScore(result2.getScore()+1);
+    rules.add((ruleEngineRequest, ruleEngineResult) -> { 
+      log.debug(Thread.currentThread().getName()+", Processing BaseProcessor:Rule1: Score: "+ruleEngineResult.getScore() +" depth:"+depth); 
+      ruleEngineResult.setScore(ruleEngineResult.getScore()+1);
     });
   }
 }

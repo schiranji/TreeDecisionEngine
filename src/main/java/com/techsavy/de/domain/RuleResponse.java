@@ -11,9 +11,9 @@ public class RuleResponse implements Response {
   public static RuleResponse getInstance() {
     Audit audit = new Audit();
     audit.setStartTime(System.currentTimeMillis());
-    RuleResponse ruleResult = new RuleResponse();
-    ruleResult.setAudit(audit);
-    return ruleResult;
+    RuleResponse ruleResponse = new RuleResponse();
+    ruleResponse.setAudit(audit);
+    return ruleResponse;
   }
   
   public void setAuditTime() {

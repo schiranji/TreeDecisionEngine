@@ -25,52 +25,52 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
   public RuleEngineRequest ruleEngineData;
-  public ProcessorResponse result;
+  public ProcessorResponse processorResponse;
   public Map<String, Object> childProcessorMap;
   public int depth = 0;
   protected List<Rule> rules = new ArrayList<Rule>();
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
  
-  public void setProcessorData(BaseAbstractProcessor processor, RuleEngineRequest argRuleEngineData, ProcessorResponse argResult,
+  public void setProcessorData(BaseAbstractProcessor processor, RuleEngineRequest argRuleEngineData, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
-    processor.ruleEngineData = argRuleEngineData;
-    processor.result = argResult;
+    //processor.ruleEngineData = argRuleEngineData;
+    processor.processorResponse = argProcessorResponse;
     processor.childProcessorMap = argProcessorMap;
     processor.depth = depth;
   }
   
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> process(ExecutorService executor, RuleEngineRequest ruleEngineData, ProcessorResponse result, List<ProcessorResponse> results,
+  public List<ProcessorResponse> process(ExecutorService executor, RuleEngineRequest ruleEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth, int maxWaitTimeSeconds) {
     if(isLeafNode(argProcessorMap) || stopCondition()) {
-      return results;
+      return argProcessorResponses;
     }
     Map<BaseAbstractProcessor, Future<List<ProcessorResponse>>> processors = new HashMap<BaseAbstractProcessor, Future<List<ProcessorResponse>>>();
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      ProcessorResponse clonedResult = (ProcessorResponse) SerializationUtils.clone(result);
-      processor.setProcessorData(processor, ruleEngineData, clonedResult, childProcessors, depth);
+      ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
+      processor.setProcessorData(processor, ruleEngineData, clonedProcessorResponse, childProcessors, depth);
       Future<List<ProcessorResponse>> processorFuture = executor.submit(processor);
       processors.put(processor, processorFuture);  
     }
     for(BaseAbstractProcessor processor:processors.keySet()) {
       try {
         Future<List<ProcessorResponse>> processorFuture = processors.get(processor);
-        List<ProcessorResponse> iterResults = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
-        if(iterResults != null && !iterResults.isEmpty()) {
-          if(isLeafNode(processor.childProcessorMap) || stopCondition()) { //Add only leaf node results
-            iterResults.get(0).setProcessor(processor.getClass().getName());
-            results.addAll(iterResults); 
+        List<ProcessorResponse> iterProcessorResponses = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
+        if(iterProcessorResponses != null && !iterProcessorResponses.isEmpty()) {
+          if(isLeafNode(processor.childProcessorMap) || stopCondition()) { //Add only leaf node responses
+            iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
+            argProcessorResponses.addAll(iterProcessorResponses); 
           } 
-          process(executor, ruleEngineData, iterResults.get(0), results,
+          process(executor, ruleEngineData, iterProcessorResponses.get(0), argProcessorResponses,
               processor.childProcessorMap, (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
         }
       } catch (ExecutionException | TimeoutException | InterruptedException e) {
-        throw new RuntimeException("Error while retrieving processor results. "+processor.getClass().getName(), e);
+        throw new RuntimeException("Error while retrieving processor responses. "+processor.getClass().getName(), e);
       }  
     }
-    return results;
+    return argProcessorResponses;
   }
   
   @Override
@@ -84,17 +84,17 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
       return null;
     }
-    List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
+    List<ProcessorResponse> processorResponses = new ArrayList<ProcessorResponse>();
     for (Rule rule : rules) {
       long ruleStartTime = System.nanoTime();
-      rule.process(ruleEngineData, result);
+      rule.process(ruleEngineData, processorResponse);
       auditLog.info("Rule: Timespan(micro):"+(System.nanoTime()-ruleStartTime)/1000);
     }
-    result.setAuditTime();
-    auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):"+result.getAudit().getTimespan());
-    results.add(result);
+    processorResponse.setAuditTime();
+    auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):"+processorResponse.getAudit().getTimespan());
+    processorResponses.add(processorResponse);
     auditLog.info("Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
-    return results;
+    return processorResponses;
   }
   
   protected boolean processPreRequisite(RuleEngineRequest argRuleEngineData) {
@@ -113,55 +113,31 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   private boolean stopCondition() {
-    return "DECLINED".equals(result.getDecision());
+    return "DECLINED".equals(processorResponse.getDecision());
   }
 
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> processSequentially(RuleEngineRequest ruleEngineData, ProcessorResponse result, List<ProcessorResponse> results,
+  public List<ProcessorResponse> processSequentially(RuleEngineRequest ruleEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth) {
     if(isLeafNode(argProcessorMap)) {
-      return results;
+      return argProcessorResponses;
     }
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      ProcessorResponse clonedResult = (ProcessorResponse) SerializationUtils.clone(result);
-      processor.setProcessorData(processor, ruleEngineData, clonedResult, childProcessors, depth);
-      List<ProcessorResponse> iterResults = processor.processRules();
-      if(iterResults != null && iterResults.size() > 0) {
-        processor.processSequentially(ruleEngineData, clonedResult, results, childProcessors, (depth+1));
+      ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
+      processor.setProcessorData(processor, ruleEngineData, clonedProcessorResponse, childProcessors, depth);
+      List<ProcessorResponse> iterProcessorResponses = processor.processRules();
+      if(iterProcessorResponses != null && iterProcessorResponses.size() > 0) {
+        processor.processSequentially(ruleEngineData, clonedProcessorResponse, argProcessorResponses, childProcessors, (depth+1));
         if(isLeafNode(childProcessors) || stopCondition()) {
-          iterResults.get(0).setProcessor(processor.getClass().getName());
-          results.addAll(iterResults);
+          iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
+          argProcessorResponses.addAll(iterProcessorResponses);
         }
       }
     }
-    return results;
+    return argProcessorResponses;
   }
-  
-  /*private void invokeProcessorNewThread(ExecutorService executor, BaseAbstractProcessor processor, Map<String, Object> childProcessors, List<RuleEngineResult> results, int maxWaitTimeSeconds) {
-	  Future<List<RuleEngineResult>> future = executor.submit(processor);      
-      try {
-        List<RuleEngineResult> iterResults = future.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
-        if(iterResults != null && iterResults.size() > 0) {
-          if(childProcessors == null) { results.addAll(iterResults); } //Add only leaf node results
-            process(executor, ruleEngineData, iterResults.get(0), results,
-              childProcessors, (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
-        }
-      } catch (ExecutionException | TimeoutException | InterruptedException e) {
-        throw new RuntimeException("Error while processing processor "+processor.getClass().getName(), e);
-      }
-  }
-
-  private void invokeProcessorSameThread(ExecutorService executor, BaseAbstractProcessor processor, Map<String, Object> childProcessors, List<RuleEngineResult> results, int maxWaitTimeSeconds) {
-    List<RuleEngineResult> iterResults = processor.processRules();
-    if(iterResults != null && iterResults.size() > 0) {
-      processor.processSequentially(ruleEngineData, processor.result, results, childProcessors, (depth+1));
-      if(isLeafNode(childProcessors) || stopCondition()) { 
-        results.addAll(iterResults);
-      }
-    }
-  }*/
   
   protected void sleepRandom() {
     try {

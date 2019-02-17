@@ -5,5 +5,5 @@ import com.techsavy.de.domain.ProcessorResponse;
 
 @FunctionalInterface
 public interface Rule {
-  public void process(RuleEngineRequest ruleData, ProcessorResponse ruleEngineResult);
+  public void process(RuleEngineRequest ruleEngineRequest, ProcessorResponse processorResponse);
 }

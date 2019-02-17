@@ -18,9 +18,9 @@ public class ProcessorResponse implements Response {
   public static ProcessorResponse getInstance() {
     Audit audit = new Audit();
     audit.setStartTime(System.currentTimeMillis());
-    ProcessorResponse ruleResult = new ProcessorResponse();
-    ruleResult.setAudit(audit);
-    return ruleResult;
+    ProcessorResponse processorResponse = new ProcessorResponse();
+    processorResponse.setAudit(audit);
+    return processorResponse;
   }
   
   public void setAuditTime() {

@@ -24,10 +24,17 @@ public class DecisionEngine {
   private static final Logger auditLog = LogManager.getLogger("auditlog");
   private static final int PROCESSOR_MAX_WAIT_TIME = 5;
   private static Map<String, Object> processorNamesMap;
+  
+  private static final ThreadLocal<RuleEngineRequest> ruleEngineData = new InheritableThreadLocal<RuleEngineRequest>();
+
   static {
     Yaml yaml = new Yaml();
     InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("processors.yml");
     processorNamesMap = yaml.load(inputStream);
+  }
+  
+  public RuleEngineRequest getRuleEngineRequest() {
+    return ruleEngineData.get();
   }
 
   public static Map<String, Object> loadProcessorMap(Map<String, Object> argProcessorMap, RuleEngineRequest ruleEngineData, int depth) throws Exception {
@@ -44,20 +51,21 @@ public class DecisionEngine {
     return argProcessorMap;
   }
   
-  private static RuleEngineResponse process(RuleEngineRequest ruleData) {
+  private static RuleEngineResponse process(RuleEngineRequest ruleEngineRequest) {
     ExecutorService executor = null;
     try {
+      ruleEngineData.set(ruleEngineRequest);
       RuleEngineResponse ruleEngineResponse = RuleEngineResponse.getInstance();
-      ProcessorResponse result = ProcessorResponse.getInstance();
+      ProcessorResponse processorResponse = ProcessorResponse.getInstance();
       BaseProcessor processor = new BaseProcessor();
-      Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleData, 0);
-      processor.setProcessorData(processor, ruleData, result, map, 0);
+      Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleEngineRequest, 0);
+      processor.setProcessorData(processor, ruleEngineRequest, processorResponse, map, 0);
       setMapSize(map);
       executor = Executors.newFixedThreadPool(mapSize);
       printMap(map, "");
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
-      processor.process(executor, ruleData, result, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
-      ruleEngineResponse.setProcessorResults(results);
+      processor.process(executor, ruleEngineRequest, processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
+      ruleEngineResponse.setProcessorResponses(results);
       ruleEngineResponse.setAuditTime();
       return ruleEngineResponse;
     } catch(Throwable t) {
@@ -68,17 +76,17 @@ public class DecisionEngine {
     }
   }
   
-  private static RuleEngineResponse processSequentially(RuleEngineRequest ruleData) throws Exception {
+  private static RuleEngineResponse processSequentially(RuleEngineRequest ruleEngineRequest) throws Exception {
     RuleEngineResponse ruleEngineResponse = RuleEngineResponse.getInstance();
-    ProcessorResponse result = ProcessorResponse.getInstance();
+    ProcessorResponse processorResponse = ProcessorResponse.getInstance();
     BaseProcessor processor = new BaseProcessor();
-    Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleData, 0);
-    processor.setProcessorData(processor, ruleData, result, map, 0);
+    Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleEngineRequest, 0);
+    processor.setProcessorData(processor, ruleEngineRequest, processorResponse, map, 0);
     setMapSize(map);
     printMap(map, "");
     List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
-    processor.processSequentially(ruleData, result, results, map, 0);
-    ruleEngineResponse.setProcessorResults(results);
+    processor.processSequentially(ruleEngineRequest, processorResponse, results, map, 0);
+    ruleEngineResponse.setProcessorResponses(results);
     ruleEngineResponse.setAuditTime();
     return ruleEngineResponse;
   }
@@ -119,13 +127,13 @@ public class DecisionEngine {
   
   public static void main(String[] args) throws Exception {
     System.out.println("Started...");
-    RuleEngineRequest ruleData = new RuleEngineRequest();
-    RuleEngineResponse ruleEngineResponse = process(ruleData);
-    List<ProcessorResponse> results = ruleEngineResponse.getProcessorResults();
+    RuleEngineRequest ruleEngineRequest = new RuleEngineRequest();
+    RuleEngineResponse ruleEngineResponse = process(ruleEngineRequest);
+    List<ProcessorResponse> results = ruleEngineResponse.getProcessorResponses();
     auditLog.info("Milti Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
     printResults(results);
-    ruleEngineResponse = processSequentially(ruleData);
-    List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResults();
+    ruleEngineResponse = processSequentially(ruleEngineRequest);
+    List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResponses();
     auditLog.info("Single Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
     printResults(resultsSeq);
     System.out.println("Done...");
