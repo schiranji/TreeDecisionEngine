@@ -2,13 +2,16 @@ package com.techsavy.de.domain;
 
 import java.util.Map;
 
+import com.techsavy.de.common.ResponseCode;
+
 public class ProcessorResponse implements Response {
 
   private static final long serialVersionUID = -7819915903074744197L;
-  
+
   private String processor;
   private int score;
   private String decision;
+  private ResponseCode responseCode = ResponseCode.PR_200;;
   private Map<String, String> decisionArrivalSteps;
   private Audit audit;
   
@@ -58,5 +61,13 @@ public class ProcessorResponse implements Response {
 
   public void setAudit(Audit audit) {
     this.audit = audit;
+  }
+
+  public ResponseCode getResponseCode() {
+    return responseCode;
+  }
+
+  public void setResponseCode(ResponseCode responseCode) {
+    this.responseCode = responseCode;
   }
 }

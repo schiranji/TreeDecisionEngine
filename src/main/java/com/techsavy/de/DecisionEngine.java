@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +22,7 @@ import com.techsavy.de.processor.BaseAbstractProcessor;
 import com.techsavy.de.processor.BaseProcessor;
 import com.techsavy.de.util.ObjectUtil;
 
-public class DecisionEngine {
+public class DecisionEngine implements Callable<RuleEngineResponse> {
   private static final Logger log = LogManager.getLogger();
   private static final Logger auditLog = LogManager.getLogger("auditlog");
   private static final int PROCESSOR_MAX_WAIT_TIME = 5;
@@ -49,6 +52,10 @@ public class DecisionEngine {
       }
     }
     return argProcessorMap;
+  }
+  
+  private static RuleEngineResponse process() {
+    return process(ruleEngineData.get());
   }
   
   private static RuleEngineResponse process(RuleEngineRequest ruleEngineRequest) {
@@ -125,17 +132,65 @@ public class DecisionEngine {
     }
   }
   
+  private static void testInvokeMultithread(RuleEngineRequest ruleEngineRequest, int threadCount) {
+    long startTime = System.currentTimeMillis();
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);;
+    ruleEngineData.set(ruleEngineRequest);
+    List<Future<RuleEngineResponse>> responseList = new ArrayList<Future<RuleEngineResponse>>();
+    for(int i=0;i<threadCount;i++) {
+      try {
+        DecisionEngine de = new DecisionEngine();
+        Future<RuleEngineResponse> ruleEngineResponse = executor.submit(de);
+        responseList.add(ruleEngineResponse);
+        System.out.println("Processing thread. " + i);
+      } catch (Exception e) {
+        log.error("Error while processing",  e);
+      }
+    }
+    for(Future<RuleEngineResponse> futResponse: responseList) {
+      try {
+        auditLog.info("Milti Threading time(millis):"+futResponse.get().getAudit().getTimespan());
+      } catch (InterruptedException | ExecutionException e) {
+        log.error("Error while processing",  e);
+      }      
+    }
+    System.out.println("******************Processing Time MultiThreading:"+(System.currentTimeMillis()-startTime));
+  }
+  
+  private static void testInvokeSinglethread(RuleEngineRequest ruleEngineRequest, int threadCount) {
+    long startTime = System.currentTimeMillis();
+    for(int i=0;i<threadCount;i++) {
+      RuleEngineResponse ruleEngineResponse;
+      try {
+        ruleEngineResponse = processSequentially(ruleEngineRequest);
+        List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResponses();
+        auditLog.info("Single Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
+      } catch (Exception e) {
+        log.error("Error while processing",  e);
+      }
+    }
+    System.out.println("******************Processing Time SingleThreading:"+(System.currentTimeMillis()-startTime));
+  }
+  
   public static void main(String[] args) throws Exception {
     System.out.println("Started...");
     RuleEngineRequest ruleEngineRequest = new RuleEngineRequest();
-    RuleEngineResponse ruleEngineResponse = process(ruleEngineRequest);
-    List<ProcessorResponse> results = ruleEngineResponse.getProcessorResponses();
-    auditLog.info("Milti Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
-    printResults(results);
-    ruleEngineResponse = processSequentially(ruleEngineRequest);
-    List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResponses();
-    auditLog.info("Single Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
-    printResults(resultsSeq);
+    testInvokeMultithread(ruleEngineRequest, 100);
+    testInvokeSinglethread(ruleEngineRequest, 100);
+    
+    //RuleEngineResponse ruleEngineResponse = process(ruleEngineRequest);
+    //List<ProcessorResponse> results = ruleEngineResponse.getProcessorResponses();
+    //auditLog.info("Milti Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
+    //printResults(results);
+    //ruleEngineResponse = processSequentially(ruleEngineRequest);
+    //List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResponses();
+    //auditLog.info("Single Threading time(millis):"+ruleEngineResponse.getAudit().getTimespan());
+    //printResults(resultsSeq);
     System.out.println("Done...");
+  }
+
+  @Override
+  public RuleEngineResponse call() throws Exception {
+    return process();
   }
 }
