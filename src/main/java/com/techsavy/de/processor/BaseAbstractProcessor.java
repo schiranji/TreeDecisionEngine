@@ -15,19 +15,16 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
 
+import com.techsavy.de.common.Constants;
 import com.techsavy.de.common.ResponseCode;
 import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.RuleEngineRequest;
 import com.techsavy.de.util.ObjectUtil;
 
-public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>> {
-  private static final String PR_408 = "PR-408";
+public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>>, Constants {
   private static final Logger log = LogManager.getLogger();
   private static final Logger auditLog = LogManager.getLogger("auditlog");
-  private static final Marker AUDIT_MARKER = MarkerManager.getMarker("AUDIT");
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
   public RuleEngineRequest ruleEngineData;
@@ -39,7 +36,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
  
   public void setProcessorData(BaseAbstractProcessor processor, RuleEngineRequest argRuleEngineData, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
-    //processor.ruleEngineData = argRuleEngineData;
+    processor.ruleEngineData = argRuleEngineData;
     processor.processorResponse = argProcessorResponse;
     processor.childProcessorMap = argProcessorMap;
     processor.depth = depth;
