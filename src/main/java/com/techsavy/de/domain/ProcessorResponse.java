@@ -15,7 +15,7 @@ public class ProcessorResponse implements Response {
   private Map<String, String> decisionArrivalSteps;
   private Audit audit;
   
-  private ProcessorResponse() { 
+  protected ProcessorResponse() { 
   }
   
   public static ProcessorResponse getInstance() {
