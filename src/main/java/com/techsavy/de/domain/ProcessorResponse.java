@@ -1,5 +1,7 @@
 package com.techsavy.de.domain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import com.techsavy.de.common.ResponseCode;
@@ -11,7 +13,9 @@ public class ProcessorResponse implements Response {
   private String processor;
   private int score;
   private String decision;
-  private ResponseCode responseCode = ResponseCode.PR_200;;
+  private ResponseCode responseCode = ResponseCode.PR_200;
+  private List<PrerequisiteResponse> prerequisiteResponses = new ArrayList<PrerequisiteResponse>();
+  private List<RuleResponse> ruleResponses = new ArrayList<RuleResponse>();
   private Map<String, String> decisionArrivalSteps;
   private Audit audit;
   
@@ -20,6 +24,7 @@ public class ProcessorResponse implements Response {
   
   public static ProcessorResponse getInstance() {
     Audit audit = new Audit();
+    audit.setType("Processor");
     audit.setStartTime(System.currentTimeMillis());
     ProcessorResponse processorResponse = new ProcessorResponse();
     processorResponse.setAudit(audit);
@@ -69,5 +74,28 @@ public class ProcessorResponse implements Response {
 
   public void setResponseCode(ResponseCode responseCode) {
     this.responseCode = responseCode;
+  }
+
+  public List<RuleResponse> getRuleResponses() {
+    return ruleResponses;
+  }
+
+  public void setRuleResponses(List<RuleResponse> ruleResponses) {
+    this.ruleResponses = ruleResponses;
+  }
+  
+  public void addRuleResponse(RuleResponse ruleResponse) {
+    this.ruleResponses.add(ruleResponse);
+  }
+
+  public List<PrerequisiteResponse> getPrerequisiteResponses() {
+    return prerequisiteResponses;
+  }
+
+  public void setPrerequisiteResponses(List<PrerequisiteResponse> prerequisiteResponses) {
+    this.prerequisiteResponses = prerequisiteResponses;
+  }
+  public void addPrerequisiteResponse(PrerequisiteResponse prerequisiteResponse) {
+    this.prerequisiteResponses.add(prerequisiteResponse);
   }
 }

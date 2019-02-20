@@ -1,8 +1,9 @@
 package com.techsavy.de.processor;
 
-import com.techsavy.de.domain.RuleEngineRequest;
+import com.techsavy.de.domain.PrerequisiteResponse;
+import com.techsavy.de.domain.DecisionEngineRequest;
 
 @FunctionalInterface
 public interface Prerequisite {
-  public boolean process(RuleEngineRequest ruleEngineRequest);
+  public PrerequisiteResponse process(DecisionEngineRequest ruleEngineRequest);
 }

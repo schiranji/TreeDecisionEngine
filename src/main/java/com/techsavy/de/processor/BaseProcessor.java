@@ -3,6 +3,9 @@ package com.techsavy.de.processor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.techsavy.de.domain.PrerequisiteResponse;
+import com.techsavy.de.domain.RuleResponse;
+
 public class BaseProcessor extends BaseAbstractProcessor {
   private static final Logger log = LogManager.getLogger();
   public BaseProcessor() {
@@ -12,17 +15,21 @@ public class BaseProcessor extends BaseAbstractProcessor {
 
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineData1) -> {
+    prerequisites.add((argDecisionEngineRequest) -> {
+      PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("BaseProcessor:Prerequiste");
       log.debug(Thread.currentThread().getName()+", Processing BaseProcessor:Prerequiste: Score: "+" depth:"+depth);
-      return true;
-    });
+      prerequisiteResponse.setPassed(true);
+      return prerequisiteResponse;
+   });
   }
   
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineRequest, ruleEngineResult) -> { 
-      log.debug(Thread.currentThread().getName()+", Processing BaseProcessor:Rule1: Score: "+ruleEngineResult.getScore() +" depth:"+depth); 
-      ruleEngineResult.setScore(ruleEngineResult.getScore()+1);
+    rules.add((argDecisionEngineRequest, processorResponse) -> {
+      RuleResponse ruleResponse = RuleResponse.getInstance("BaseProcessor:Rule1");
+      log.debug(Thread.currentThread().getName()+", Processing BaseProcessor:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
+      return ruleResponse;
     });
   }
 }

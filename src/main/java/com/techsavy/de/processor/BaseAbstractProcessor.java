@@ -18,8 +18,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.techsavy.de.common.Constants;
 import com.techsavy.de.common.ResponseCode;
+import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.ProcessorResponse;
-import com.techsavy.de.domain.RuleEngineRequest;
+import com.techsavy.de.domain.DecisionEngineRequest;
+import com.techsavy.de.domain.RuleResponse;
 import com.techsavy.de.util.ObjectUtil;
 
 public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>>, Constants {
@@ -27,23 +29,23 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   private static final Logger auditLog = LogManager.getLogger("auditlog");
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
-  public RuleEngineRequest ruleEngineData;
+  public DecisionEngineRequest decisionEngineRequest;
   public ProcessorResponse processorResponse;
   public Map<String, Object> childProcessorMap;
   public int depth = 0;
   protected List<Rule> rules = new ArrayList<Rule>();
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
  
-  public void setProcessorData(BaseAbstractProcessor processor, RuleEngineRequest argRuleEngineData, ProcessorResponse argProcessorResponse,
+  public void setProcessorData(BaseAbstractProcessor processor, DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
-    processor.ruleEngineData = argRuleEngineData;
+    processor.decisionEngineRequest = argDecisionEngineRequest;
     processor.processorResponse = argProcessorResponse;
     processor.childProcessorMap = argProcessorMap;
     processor.depth = depth;
   }
   
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> process(ExecutorService executor, RuleEngineRequest ruleEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
+  public List<ProcessorResponse> process(ExecutorService executor, DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth, int maxWaitTimeSeconds) {
     if(isLeafNode(argProcessorMap) || stopCondition() || errorCondition(processorResponse)) {
       return argProcessorResponses;
@@ -53,7 +55,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
       ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
-      processor.setProcessorData(processor, ruleEngineData, clonedProcessorResponse, childProcessors, depth);
+      processor.setProcessorData(processor, argDecisionEngineRequest, clonedProcessorResponse, childProcessors, depth);
       Future<List<ProcessorResponse>> processorFuture = executor.submit(processor);
       processors.put(processor, processorFuture);  
     }
@@ -66,7 +68,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
             iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
             argProcessorResponses.addAll(iterProcessorResponses); 
           } 
-          process(executor, ruleEngineData, iterProcessorResponses.get(0), argProcessorResponses,
+          process(executor, argDecisionEngineRequest, iterProcessorResponses.get(0), argProcessorResponses,
               processor.childProcessorMap, (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
         }
       } catch (TimeoutException e) {
@@ -75,7 +77,9 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       } catch (InterruptedException | ExecutionException e) {
         processorResponse.setResponseCode(ResponseCode.PR_500);
         log.error("Error while retrieving processor responses. "+processor.getClass().getName(), e);
-      }  
+      } finally {
+        processorResponse.setAuditTime();
+      }
     }
     return argProcessorResponses;
   }
@@ -91,14 +95,16 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
 
   private List<ProcessorResponse> processRules() {
     long startTime = System.currentTimeMillis();
-    if(!processPreRequisite(ruleEngineData)) {
+    if(!processPreRequisite(decisionEngineRequest)) {
       auditLog.info(AUDIT_MARKER, "Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
       return null;
     }
     List<ProcessorResponse> processorResponses = new ArrayList<ProcessorResponse>();
     for (Rule rule : rules) {
       long ruleStartTime = System.nanoTime();
-      rule.process(ruleEngineData, processorResponse);
+      RuleResponse ruleResponse = rule.process(decisionEngineRequest, processorResponse);
+      ruleResponse.setAuditTime();
+      processorResponse.addRuleResponse(ruleResponse);
       auditLog.info(AUDIT_MARKER, "Rule: Timespan(micro):"+(System.nanoTime()-ruleStartTime)/1000);
     }
     processorResponse.setAuditTime();
@@ -108,10 +114,13 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     return processorResponses;
   }
   
-  protected boolean processPreRequisite(RuleEngineRequest argRuleEngineData) {
+  protected boolean processPreRequisite(DecisionEngineRequest argRuleEngineData) {
     if(prerequisites != null) {
       for(Prerequisite prerequisite: prerequisites) {
-        if(!prerequisite.process(ruleEngineData)) {
+        PrerequisiteResponse prerequisiteResponse = prerequisite.process(decisionEngineRequest);
+        prerequisiteResponse.setAuditTime();
+        processorResponse.addPrerequisiteResponse(prerequisiteResponse);
+        if(!prerequisiteResponse.isPassed()) {
           return false;
         }
       }
@@ -128,7 +137,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> processSequentially(RuleEngineRequest ruleEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
+  public List<ProcessorResponse> processSequentially(DecisionEngineRequest ruleEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth) {
     if(isLeafNode(argProcessorMap)) {
       return argProcessorResponses;

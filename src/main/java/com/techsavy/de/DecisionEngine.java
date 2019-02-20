@@ -16,18 +16,18 @@ import org.yaml.snakeyaml.Yaml;
 
 import com.techsavy.de.common.Constants;
 import com.techsavy.de.domain.ProcessorResponse;
-import com.techsavy.de.domain.RuleEngineRequest;
-import com.techsavy.de.domain.RuleEngineResponse;
+import com.techsavy.de.domain.DecisionEngineRequest;
+import com.techsavy.de.domain.DecisionEngineResponse;
 import com.techsavy.de.processor.BaseAbstractProcessor;
 import com.techsavy.de.processor.BaseProcessor;
 import com.techsavy.de.util.FileUtil;
 import com.techsavy.de.util.ObjectUtil;
 
-public class DecisionEngine implements Callable<RuleEngineResponse>, Constants {
+public class DecisionEngine implements Callable<DecisionEngineResponse>, Constants {
   private static final Logger log = LogManager.getLogger();  
   private static Map<String, Object> processorNamesMap;
   private static int mapSize = 0;
-  private RuleEngineRequest ruleEngineData;
+  private DecisionEngineRequest decisionEngineRequest;
   private ProcessorResponse processorResponse;
 
   static {
@@ -39,16 +39,16 @@ public class DecisionEngine implements Callable<RuleEngineResponse>, Constants {
     mapSize = (new Long(FileUtil.getLineCount(configFileName))).intValue();
   }
   
-  public DecisionEngine(RuleEngineRequest ruleEngineData, ProcessorResponse processorResponse) {
-    this.ruleEngineData = ruleEngineData;
+  public DecisionEngine(DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse) {
+    this.decisionEngineRequest = argDecisionEngineRequest;
     this.processorResponse = processorResponse;
   }
 
-  public static Map<String, Object> loadProcessorMap(Map<String, Object> argProcessorMap, RuleEngineRequest ruleEngineData, int depth) throws Exception {
+  public static Map<String, Object> loadProcessorMap(Map<String, Object> argProcessorMap, DecisionEngineRequest argDecisionEngineRequest, int depth) throws Exception {
     Map<String, Object> processorMap = new HashMap<String, Object>();
     for (String key : argProcessorMap.keySet()) {
       BaseAbstractProcessor processor = (BaseAbstractProcessor)ObjectUtil.getInstanceByName(key);
-      processor.setProcessorData(processor, ruleEngineData, ProcessorResponse.getInstance(), processorMap, depth);
+      processor.setProcessorData(processor, argDecisionEngineRequest, ProcessorResponse.getInstance(), processorMap, depth);
       if (argProcessorMap.get(key) != null) {
         processorMap.put(key, processor);
       } else {
@@ -58,18 +58,17 @@ public class DecisionEngine implements Callable<RuleEngineResponse>, Constants {
     return argProcessorMap;
   }
   
-  public RuleEngineResponse process(RuleEngineRequest ruleEngineRequest, ProcessorResponse processorResponse) {
+  public DecisionEngineResponse process(DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse) {
     ExecutorService executor = null;
     try {
-      RuleEngineResponse ruleEngineResponse = RuleEngineResponse.getInstance();
+      DecisionEngineResponse ruleEngineResponse = DecisionEngineResponse.getInstance();
       BaseProcessor processor = new BaseProcessor();
-      Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleEngineRequest, 0);
-      processor.setProcessorData(processor, ruleEngineRequest, processorResponse, map, 0);
-      //setMapSize(map);
+      Map<String, Object> map = loadProcessorMap(processorNamesMap, argDecisionEngineRequest, 0);
+      processor.setProcessorData(processor, argDecisionEngineRequest, processorResponse, map, 0);
       executor = Executors.newFixedThreadPool(mapSize);
       printMap(map, "");
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
-      processor.process(executor, ruleEngineRequest, processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
+      processor.process(executor, argDecisionEngineRequest, processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
       ruleEngineResponse.setProcessorResponses(results);
       ruleEngineResponse.setAuditTime();
       return ruleEngineResponse;
@@ -81,12 +80,11 @@ public class DecisionEngine implements Callable<RuleEngineResponse>, Constants {
     }
   }
   
-  public RuleEngineResponse processSequentially(RuleEngineRequest ruleEngineRequest, ProcessorResponse processorResponse) throws Exception {
-    RuleEngineResponse ruleEngineResponse = RuleEngineResponse.getInstance();
+  public DecisionEngineResponse processSequentially(DecisionEngineRequest ruleEngineRequest, ProcessorResponse processorResponse) throws Exception {
+    DecisionEngineResponse ruleEngineResponse = DecisionEngineResponse.getInstance();
     BaseProcessor processor = new BaseProcessor();
     Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleEngineRequest, 0);
     processor.setProcessorData(processor, ruleEngineRequest, processorResponse, map, 0);
-    //setMapSize(map);
     printMap(map, "");
     List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
     processor.processSequentially(ruleEngineRequest, processorResponse, results, map, 0);
@@ -94,19 +92,6 @@ public class DecisionEngine implements Callable<RuleEngineResponse>, Constants {
     ruleEngineResponse.setAuditTime();
     return ruleEngineResponse;
   }
-  
-  
-  /*@SuppressWarnings("unchecked")
-  private static int setMapSize(Map<String, Object> argProcessorMap) {
-    for(String key: argProcessorMap.keySet()) {
-      Object val = argProcessorMap.get(key);
-      mapSize++;
-      if(val instanceof Map) {
-        setMapSize((Map<String, Object>)val);
-      }
-    }
-    return mapSize;
-  }*/
   
   @SuppressWarnings("unchecked")
   private static void printMap(Map<String, Object> argProcessorMap, String indentation) {
@@ -120,7 +105,7 @@ public class DecisionEngine implements Callable<RuleEngineResponse>, Constants {
   }
   
   @Override
-  public RuleEngineResponse call() throws Exception {
-    return process(ruleEngineData, processorResponse);
+  public DecisionEngineResponse call() throws Exception {
+    return process(decisionEngineRequest, processorResponse);
   }
 }

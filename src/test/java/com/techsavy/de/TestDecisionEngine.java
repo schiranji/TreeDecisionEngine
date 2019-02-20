@@ -11,8 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.techsavy.de.domain.ProcessorResponse;
-import com.techsavy.de.domain.RuleEngineRequest;
-import com.techsavy.de.domain.RuleEngineResponse;
+import com.techsavy.de.domain.DecisionEngineRequest;
+import com.techsavy.de.domain.DecisionEngineResponse;
 import com.techsavy.de.processor.sample2.domain.ProcessorResponse2;
 import com.techsavy.de.util.LogUtil;
 
@@ -20,20 +20,20 @@ public class TestDecisionEngine {
   private static final Logger log = LogManager.getLogger();
   private static final Logger auditLog = LogManager.getLogger("auditlog");
 
-  private static void testInvokeMultithread(RuleEngineRequest ruleEngineRequest, int threadCount) {
+  private static void testInvokeMultithread(DecisionEngineRequest ruleEngineRequest, int threadCount) {
     long startTime = System.currentTimeMillis();
     ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-    List<Future<RuleEngineResponse>> responseList = new ArrayList<Future<RuleEngineResponse>>();
+    List<Future<DecisionEngineResponse>> responseList = new ArrayList<Future<DecisionEngineResponse>>();
     for (int i = 0; i < threadCount; i++) {
       try {
         DecisionEngine de = new DecisionEngine(ruleEngineRequest, ProcessorResponse.getInstance());
-        Future<RuleEngineResponse> ruleEngineResponse = executor.submit(de);
+        Future<DecisionEngineResponse> ruleEngineResponse = executor.submit(de);
         responseList.add(ruleEngineResponse);
       } catch (Exception e) {
         log.error("Error while processing", e);
       }
     }
-    for (Future<RuleEngineResponse> futResponse : responseList) {
+    for (Future<DecisionEngineResponse> futResponse : responseList) {
       try {
         LogUtil.printResults(log, futResponse.get().getProcessorResponses());
         auditLog.info("Milti Threading time(millis):" + futResponse.get().getAudit().getTimespan());
@@ -44,11 +44,11 @@ public class TestDecisionEngine {
     System.out.println("Processing Time MultiThreading:" + (System.currentTimeMillis() - startTime));
   }
 
-  private static void testInvokeSinglethread(RuleEngineRequest ruleEngineRequest, int threadCount) {
+  private static void testInvokeSinglethread(DecisionEngineRequest ruleEngineRequest, int threadCount) {
     long startTime = System.currentTimeMillis();
     DecisionEngine de = new DecisionEngine(ruleEngineRequest, ProcessorResponse.getInstance());
     for (int i = 0; i < threadCount; i++) {
-      RuleEngineResponse ruleEngineResponse;
+      DecisionEngineResponse ruleEngineResponse;
       try {
         ruleEngineResponse = de.processSequentially(ruleEngineRequest, ProcessorResponse2.getInstance());
         List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResponses();
@@ -63,7 +63,7 @@ public class TestDecisionEngine {
 
   public static void main(String[] args) throws Exception {
     System.out.println("Started...");
-    RuleEngineRequest ruleEngineRequest = new RuleEngineRequest();
+    DecisionEngineRequest ruleEngineRequest = new DecisionEngineRequest();
     testInvokeMultithread(ruleEngineRequest, 1);
     testInvokeSinglethread(ruleEngineRequest, 1);
     System.out.println("Done...");
