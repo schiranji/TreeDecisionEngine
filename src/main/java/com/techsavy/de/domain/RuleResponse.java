@@ -3,6 +3,7 @@ package com.techsavy.de.domain;
 public class RuleResponse implements Response {
 
   private static final long serialVersionUID = 8508197356680409469L;
+  private static final String AUDIT_TYPE_RULE = "Rule";
   private String ruleName;
   private Audit audit;
   
@@ -10,13 +11,9 @@ public class RuleResponse implements Response {
   }
   
   public static RuleResponse getInstance(String ruleName) {
-    Audit audit = new Audit();
-    audit.setStartTime(System.currentTimeMillis());
-    audit.setType("Rule");
-    audit.setName(ruleName);
-    RuleResponse ruleResponse = new RuleResponse();
+   RuleResponse ruleResponse = new RuleResponse();
     ruleResponse.setRuleName(ruleName);
-    ruleResponse.setAudit(audit);
+    ruleResponse.setAudit(Audit.getInstance(AUDIT_TYPE_RULE, ruleName));
     return ruleResponse;
   }
   

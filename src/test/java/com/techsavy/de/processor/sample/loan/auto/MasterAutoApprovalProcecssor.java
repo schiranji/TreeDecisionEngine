@@ -12,7 +12,7 @@ public class MasterAutoApprovalProcecssor extends BaseProcessor {
   
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineRequest) -> {
+    prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("MasterAutoApprovalProcecssor:Prerequiste1");
       log.debug("Processing MasterAutoApprovalProcecssor:Prerequiste1: Score: "+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
@@ -22,7 +22,7 @@ public class MasterAutoApprovalProcecssor extends BaseProcessor {
 
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineRequest, processorResponse) -> {
+    rules.add((decisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("MasterAutoApprovalProcecssor:Rule1");
       log.debug("Processing MasterAutoApprovalProcecssor:Rule1: Score: "+processorResponse.getScore()+" depth:"+depth); 
       processorResponse.setScore(processorResponse.getScore()+1);

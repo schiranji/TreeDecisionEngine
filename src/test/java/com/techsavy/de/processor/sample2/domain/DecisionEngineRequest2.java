@@ -2,7 +2,7 @@ package com.techsavy.de.processor.sample2.domain;
 
 import com.techsavy.de.domain.DecisionEngineRequest;
 
-public class RuleEngineRequest2 extends DecisionEngineRequest {
+public class DecisionEngineRequest2 extends DecisionEngineRequest {
 
   private static final long serialVersionUID = 4562601397789368017L;
   public int delinquencies = 5;

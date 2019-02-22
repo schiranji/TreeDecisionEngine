@@ -12,6 +12,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.annotation.processing.Processor;
+
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +22,7 @@ import com.techsavy.de.common.Constants;
 import com.techsavy.de.common.ResponseCode;
 import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.ProcessorResponse;
+import com.techsavy.de.domain.Audit;
 import com.techsavy.de.domain.DecisionEngineRequest;
 import com.techsavy.de.domain.RuleResponse;
 import com.techsavy.de.util.ObjectUtil;
@@ -29,6 +32,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   private static final Logger auditLog = LogManager.getLogger("auditlog");
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
+  private static final String AUDIT_TYPE_PROCESSOR = "Processor";
   public DecisionEngineRequest decisionEngineRequest;
   public ProcessorResponse processorResponse;
   public Map<String, Object> childProcessorMap;
@@ -40,6 +44,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       Map<String, Object> argProcessorMap, int depth) {
     processor.decisionEngineRequest = argDecisionEngineRequest;
     processor.processorResponse = argProcessorResponse;
+    processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR,processor.getClass().getName()));
     processor.childProcessorMap = argProcessorMap;
     processor.depth = depth;
   }
@@ -95,6 +100,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
 
   private List<ProcessorResponse> processRules() {
     long startTime = System.currentTimeMillis();
+    processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR, this.getClass().getName()));
     if(!processPreRequisite(decisionEngineRequest)) {
       auditLog.info(AUDIT_MARKER, "Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
       return null;
@@ -114,7 +120,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     return processorResponses;
   }
   
-  protected boolean processPreRequisite(DecisionEngineRequest argRuleEngineData) {
+  protected boolean processPreRequisite(DecisionEngineRequest argDecisionEngineData) {
     if(prerequisites != null) {
       for(Prerequisite prerequisite: prerequisites) {
         PrerequisiteResponse prerequisiteResponse = prerequisite.process(decisionEngineRequest);
@@ -137,7 +143,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> processSequentially(DecisionEngineRequest ruleEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
+  public List<ProcessorResponse> processSequentially(DecisionEngineRequest decisionEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth) {
     if(isLeafNode(argProcessorMap)) {
       return argProcessorResponses;
@@ -146,10 +152,10 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
       ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
-      processor.setProcessorData(processor, ruleEngineData, clonedProcessorResponse, childProcessors, depth);
+      processor.setProcessorData(processor, decisionEngineData, clonedProcessorResponse, childProcessors, depth);
       List<ProcessorResponse> iterProcessorResponses = processor.processRules();
       if(iterProcessorResponses != null && iterProcessorResponses.size() > 0) {
-        processor.processSequentially(ruleEngineData, clonedProcessorResponse, argProcessorResponses, childProcessors, (depth+1));
+        processor.processSequentially(decisionEngineData, clonedProcessorResponse, argProcessorResponses, childProcessors, (depth+1));
         if(isLeafNode(childProcessors) || stopCondition()) {
           iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
           argProcessorResponses.addAll(iterProcessorResponses);

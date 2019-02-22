@@ -12,7 +12,7 @@ public class AutoApprovalProcecssorBank1 extends BaseProcessor {
   
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineRequest) -> {
+    prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("AutoApprovalProcecssorBank1:Prerequiste1");
       log.debug("Processing AutoApprovalProcecssorBank1:Prerequiste1: Score: "+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
@@ -22,11 +22,11 @@ public class AutoApprovalProcecssorBank1 extends BaseProcessor {
   
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> {
+    rules.add((decisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBank1:Rule1");
-      log.debug("Processing AutoApprovalProcecssorBank1:Rule1: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
-      ruleEngineResponse.setDecision("DECLINED");
+      log.debug("Processing AutoApprovalProcecssorBank1:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
+      processorResponse.setDecision("DECLINED");
       return ruleResponse;
     });
   }

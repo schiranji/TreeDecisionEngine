@@ -12,13 +12,13 @@ public class AutoApprovalProcecssorBankA extends BaseProcessor {
   
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineRequest) -> {
+    prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("AutoApprovalProcecssorBankA:Prerequiste1");
       log.debug("Processing AutoApprovalProcecssorBankA:Prerequiste1: Score: "+" depth:"+depth);
       prerequisiteResponse.setPassed(true);
       return prerequisiteResponse;
     });
-    prerequisites.add((ruleEngineRequest) -> {
+    prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("AutoApprovalProcecssorBank1:Prerequiste1");
       log.debug("Processing AutoApprovalProcecssorBankA:Prerequiste2: Score: "+" depth:"+depth);
       prerequisiteResponse.setPassed(true);
@@ -28,28 +28,28 @@ public class AutoApprovalProcecssorBankA extends BaseProcessor {
   
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> {
+    rules.add((decisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBankA:Rule1");
-      log.debug("Processing AutoApprovalProcecssorBankA:Rule1: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
+      log.debug("Processing AutoApprovalProcecssorBankA:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> {
+    rules.add((decisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBankA:Rule2");
-      log.debug("Processing AutoApprovalProcecssorBankA:Rule2: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
+      log.debug("Processing AutoApprovalProcecssorBankA:Rule2: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> {
+    rules.add((decisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBankA:Rule3");
-      log.debug("Processing AutoApprovalProcecssorBankA:Rule3: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
+      log.debug("Processing AutoApprovalProcecssorBankA:Rule3: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> { 
+    rules.add((decisionEngineRequest, processorResponse) -> { 
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBankA:Rule4");
-      log.debug("Processing AutoApprovalProcecssorBankA:Rule4: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
+      log.debug("Processing AutoApprovalProcecssorBankA:Rule4: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });}
 

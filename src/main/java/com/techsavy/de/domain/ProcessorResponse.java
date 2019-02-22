@@ -19,18 +19,6 @@ public class ProcessorResponse implements Response {
   private Map<String, String> decisionArrivalSteps;
   private Audit audit;
   
-  protected ProcessorResponse() { 
-  }
-  
-  public static ProcessorResponse getInstance() {
-    Audit audit = new Audit();
-    audit.setType("Processor");
-    audit.setStartTime(System.currentTimeMillis());
-    ProcessorResponse processorResponse = new ProcessorResponse();
-    processorResponse.setAudit(audit);
-    return processorResponse;
-  }
-  
   public void setAuditTime() {
     getAudit().setEndTime(System.currentTimeMillis());
   }
@@ -58,6 +46,7 @@ public class ProcessorResponse implements Response {
   }
   public void setProcessor(String processor) {
     this.processor = processor;
+    audit.setName(processor);
   }
 
   public Audit getAudit() {

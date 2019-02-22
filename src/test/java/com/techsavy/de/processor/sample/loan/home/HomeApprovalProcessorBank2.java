@@ -12,7 +12,7 @@ public class HomeApprovalProcessorBank2 extends BaseProcessor {
   
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineRequest) -> {
+    prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("HomeApprovalProcessorBank2:Prerequiste1");
       log.debug("Processing HomeApprovalProcessorBank2:Prerequiste1: Score: "+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
@@ -22,10 +22,10 @@ public class HomeApprovalProcessorBank2 extends BaseProcessor {
   
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> { 
+    rules.add((decisionEngineRequest, processorResponse) -> { 
       RuleResponse ruleResponse = RuleResponse.getInstance("HomeApprovalProcessorBank2:Rule1");
-      log.debug("Processing HomeApprovalProcessorBank2:Rule1: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
+      log.debug("Processing HomeApprovalProcessorBank2:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
   }

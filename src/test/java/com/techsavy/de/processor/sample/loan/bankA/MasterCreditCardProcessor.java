@@ -12,7 +12,7 @@ public class MasterCreditCardProcessor extends BaseAbstractProcessor {
   
   @Override
   protected void buildPrerequistes() {
-    prerequisites.add((ruleEngineRequest) -> {
+    prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("MasterCreditCardProcessor:Prerequiste1");
       log.debug("Processing MasterCreditCardProcessor:Prerequiste1: Score: "+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
@@ -22,11 +22,11 @@ public class MasterCreditCardProcessor extends BaseAbstractProcessor {
 
   @Override
   protected void buildRules() {
-    rules.add((ruleEngineRequest, ruleEngineResponse) -> { 
+    rules.add((decisionEngineRequest, processorResponse) -> { 
       RuleResponse ruleResponse = RuleResponse.getInstance("MasterCreditCardProcessor:Rule1");
-      log.debug("Processing MasterCreditCardProcessor:Rule1: Score: "+ruleEngineResponse.getScore() +" depth:"+depth); 
-      ruleEngineResponse.setScore(ruleEngineResponse.getScore()+1);
-      ruleEngineResponse.setDecision("DECLINED");
+      log.debug("Processing MasterCreditCardProcessor:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      processorResponse.setScore(processorResponse.getScore()+1);
+      processorResponse.setDecision("DECLINED");
       return ruleResponse;
     });
   }

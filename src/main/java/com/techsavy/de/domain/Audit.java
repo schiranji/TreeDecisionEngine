@@ -13,6 +13,22 @@ public class Audit implements Serializable {
   private long startTime;
   private long endTime;
   
+  private Audit() {
+    
+  }
+  public static Audit getInstance(String type) {
+    Audit audit = new Audit();
+    audit.setStartTime(System.currentTimeMillis());
+    audit.setType(type);
+    return audit;
+  }
+  public static Audit getInstance(String type, String name) {
+    Audit audit = new Audit();
+    audit.setStartTime(System.currentTimeMillis());
+    audit.setType(type);
+    audit.setName(name);
+    return audit;
+  }
   public String getType() {
     return type;
   }

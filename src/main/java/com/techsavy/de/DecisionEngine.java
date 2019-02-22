@@ -44,11 +44,11 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
     this.processorResponse = processorResponse;
   }
 
-  public static Map<String, Object> loadProcessorMap(Map<String, Object> argProcessorMap, DecisionEngineRequest argDecisionEngineRequest, int depth) throws Exception {
+  public Map<String, Object> loadProcessorMap(Map<String, Object> argProcessorMap, DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse, int depth) throws Exception {
     Map<String, Object> processorMap = new HashMap<String, Object>();
     for (String key : argProcessorMap.keySet()) {
       BaseAbstractProcessor processor = (BaseAbstractProcessor)ObjectUtil.getInstanceByName(key);
-      processor.setProcessorData(processor, argDecisionEngineRequest, ProcessorResponse.getInstance(), processorMap, depth);
+      processor.setProcessorData(processor, argDecisionEngineRequest, processorResponse, processorMap, depth);
       if (argProcessorMap.get(key) != null) {
         processorMap.put(key, processor);
       } else {
@@ -61,17 +61,17 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
   public DecisionEngineResponse process(DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse) {
     ExecutorService executor = null;
     try {
-      DecisionEngineResponse ruleEngineResponse = DecisionEngineResponse.getInstance();
+      DecisionEngineResponse decisionEngineResponse = DecisionEngineResponse.getInstance();
       BaseProcessor processor = new BaseProcessor();
-      Map<String, Object> map = loadProcessorMap(processorNamesMap, argDecisionEngineRequest, 0);
+      Map<String, Object> map = loadProcessorMap(processorNamesMap, argDecisionEngineRequest, processorResponse, 0);
       processor.setProcessorData(processor, argDecisionEngineRequest, processorResponse, map, 0);
       executor = Executors.newFixedThreadPool(mapSize);
       printMap(map, "");
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
       processor.process(executor, argDecisionEngineRequest, processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
-      ruleEngineResponse.setProcessorResponses(results);
-      ruleEngineResponse.setAuditTime();
-      return ruleEngineResponse;
+      decisionEngineResponse.setProcessorResponses(results);
+      decisionEngineResponse.setAuditTime();
+      return decisionEngineResponse;
     } catch(Throwable t) {
       t.printStackTrace();
       return null;
@@ -80,21 +80,21 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
     }
   }
   
-  public DecisionEngineResponse processSequentially(DecisionEngineRequest ruleEngineRequest, ProcessorResponse processorResponse) throws Exception {
-    DecisionEngineResponse ruleEngineResponse = DecisionEngineResponse.getInstance();
+  public DecisionEngineResponse processSequentially(DecisionEngineRequest decisionEngineRequest, ProcessorResponse processorResponse) throws Exception {
+    DecisionEngineResponse decisionEngineResponse = DecisionEngineResponse.getInstance();
     BaseProcessor processor = new BaseProcessor();
-    Map<String, Object> map = loadProcessorMap(processorNamesMap, ruleEngineRequest, 0);
-    processor.setProcessorData(processor, ruleEngineRequest, processorResponse, map, 0);
+    Map<String, Object> map = loadProcessorMap(processorNamesMap, decisionEngineRequest, processorResponse, 0);
+    processor.setProcessorData(processor, decisionEngineRequest, processorResponse, map, 0);
     printMap(map, "");
     List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
-    processor.processSequentially(ruleEngineRequest, processorResponse, results, map, 0);
-    ruleEngineResponse.setProcessorResponses(results);
-    ruleEngineResponse.setAuditTime();
-    return ruleEngineResponse;
+    processor.processSequentially(decisionEngineRequest, processorResponse, results, map, 0);
+    decisionEngineResponse.setProcessorResponses(results);
+    decisionEngineResponse.setAuditTime();
+    return decisionEngineResponse;
   }
   
   @SuppressWarnings("unchecked")
-  private static void printMap(Map<String, Object> argProcessorMap, String indentation) {
+  private void printMap(Map<String, Object> argProcessorMap, String indentation) {
     for(String key: argProcessorMap.keySet()) {
       Object val = argProcessorMap.get(key);
       log.debug(indentation + key);

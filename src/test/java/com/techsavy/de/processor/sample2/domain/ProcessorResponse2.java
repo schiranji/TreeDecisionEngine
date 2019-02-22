@@ -1,6 +1,5 @@
 package com.techsavy.de.processor.sample2.domain;
 
-import com.techsavy.de.domain.Audit;
 import com.techsavy.de.domain.ProcessorResponse;
 
 public class ProcessorResponse2 extends ProcessorResponse {
@@ -12,10 +11,7 @@ public class ProcessorResponse2 extends ProcessorResponse {
   }
   
   public static ProcessorResponse2 getInstance() {
-    Audit audit = new Audit();
-    audit.setStartTime(System.currentTimeMillis());
     ProcessorResponse2 processorResponse = new ProcessorResponse2();
-    processorResponse.setAudit(audit);
     return processorResponse;
   }
 

@@ -2,6 +2,7 @@ package com.techsavy.de.domain;
 
 public class PrerequisiteResponse implements Response {
 
+  private static final String AUDIT_PREREQUISITE_TYPE = "Prerequisite";
   private static final long serialVersionUID = 8508197356680409469L;
   private String prerequisiteName;
   private boolean passed;
@@ -11,13 +12,9 @@ public class PrerequisiteResponse implements Response {
   }
   
   public static PrerequisiteResponse getInstance(String name) {
-    Audit audit = new Audit();
-    audit.setStartTime(System.currentTimeMillis());
-    audit.setType("Prerequisite");
-    audit.setName(name);
     PrerequisiteResponse prerequisiteResponse = new PrerequisiteResponse();
     prerequisiteResponse.setPrerequisiteName(name);
-    prerequisiteResponse.setAudit(audit);
+    prerequisiteResponse.setAudit(Audit.getInstance(AUDIT_PREREQUISITE_TYPE, name));
     return prerequisiteResponse;
   }
   

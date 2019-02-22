@@ -20,22 +20,22 @@ public class TestDecisionEngine {
   private static final Logger log = LogManager.getLogger();
   private static final Logger auditLog = LogManager.getLogger("auditlog");
 
-  private static void testInvokeMultithread(DecisionEngineRequest ruleEngineRequest, int threadCount) {
+  private static void testInvokeMultithread(DecisionEngineRequest decisionEngineRequest, int threadCount) {
     long startTime = System.currentTimeMillis();
     ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     List<Future<DecisionEngineResponse>> responseList = new ArrayList<Future<DecisionEngineResponse>>();
     for (int i = 0; i < threadCount; i++) {
       try {
-        DecisionEngine de = new DecisionEngine(ruleEngineRequest, ProcessorResponse.getInstance());
-        Future<DecisionEngineResponse> ruleEngineResponse = executor.submit(de);
-        responseList.add(ruleEngineResponse);
+        DecisionEngine de = new DecisionEngine(decisionEngineRequest, new ProcessorResponse());
+        Future<DecisionEngineResponse> decisionEngineResponse = executor.submit(de);
+        responseList.add(decisionEngineResponse);
       } catch (Exception e) {
         log.error("Error while processing", e);
       }
     }
     for (Future<DecisionEngineResponse> futResponse : responseList) {
       try {
-        LogUtil.printResults(log, futResponse.get().getProcessorResponses());
+        LogUtil.logObject(log, futResponse.get());
         auditLog.info("Milti Threading time(millis):" + futResponse.get().getAudit().getTimespan());
       } catch (InterruptedException | ExecutionException e) {
         log.error("Error while processing", e);
@@ -44,16 +44,15 @@ public class TestDecisionEngine {
     System.out.println("Processing Time MultiThreading:" + (System.currentTimeMillis() - startTime));
   }
 
-  private static void testInvokeSinglethread(DecisionEngineRequest ruleEngineRequest, int threadCount) {
+  private static void testInvokeSinglethread(DecisionEngineRequest decisionEngineRequest, int threadCount) {
     long startTime = System.currentTimeMillis();
-    DecisionEngine de = new DecisionEngine(ruleEngineRequest, ProcessorResponse.getInstance());
+    DecisionEngine de = new DecisionEngine(decisionEngineRequest, new ProcessorResponse());
     for (int i = 0; i < threadCount; i++) {
-      DecisionEngineResponse ruleEngineResponse;
+      DecisionEngineResponse decisionEngineResponse;
       try {
-        ruleEngineResponse = de.processSequentially(ruleEngineRequest, ProcessorResponse2.getInstance());
-        List<ProcessorResponse> resultsSeq = ruleEngineResponse.getProcessorResponses();
-        LogUtil.printResults(log, resultsSeq);
-        auditLog.info("Single Threading time(millis):" + ruleEngineResponse.getAudit().getTimespan());
+        decisionEngineResponse = de.processSequentially(decisionEngineRequest, ProcessorResponse2.getInstance());
+        LogUtil.logObject(log, decisionEngineResponse);
+        auditLog.info("Single Threading time(millis):" + decisionEngineResponse.getAudit().getTimespan());
       } catch (Exception e) {
         log.error("Error while processing", e);
       }
@@ -63,9 +62,9 @@ public class TestDecisionEngine {
 
   public static void main(String[] args) throws Exception {
     System.out.println("Started...");
-    DecisionEngineRequest ruleEngineRequest = new DecisionEngineRequest();
-    testInvokeMultithread(ruleEngineRequest, 1);
-    testInvokeSinglethread(ruleEngineRequest, 1);
+    DecisionEngineRequest decisionEngineRequest = new DecisionEngineRequest();
+    testInvokeMultithread(decisionEngineRequest, 1);
+    testInvokeSinglethread(decisionEngineRequest, 1);
     System.out.println("Done...");
   }
 }

@@ -6,6 +6,7 @@ import com.techsavy.de.DecisionEngine;
 
 public class DecisionEngineResponse implements Response {
 
+  private static final String AUDIT_DECISION_ENGINE_TYPE = "DecisionEngine";
   private static final long serialVersionUID = -5054894114864253976L;
   List<ProcessorResponse> processorResponses;
   Audit audit;
@@ -14,13 +15,9 @@ public class DecisionEngineResponse implements Response {
   }
   
   public static DecisionEngineResponse getInstance() {
-    Audit audit = new Audit();
-    audit.setStartTime(System.currentTimeMillis());
-    audit.setType("DecisionEngine");
-    audit.setName(DecisionEngine.class.getName());
-    DecisionEngineResponse ruleEngineResponse = new DecisionEngineResponse();
-    ruleEngineResponse.setAudit(audit);
-    return ruleEngineResponse;
+    DecisionEngineResponse decisionEngineResponse = new DecisionEngineResponse();
+    decisionEngineResponse.setAudit(Audit.getInstance(AUDIT_DECISION_ENGINE_TYPE, DecisionEngine.class.getName()));
+    return decisionEngineResponse;
   }
   
   public List<ProcessorResponse> getProcessorResponses() {

@@ -5,5 +5,5 @@ import com.techsavy.de.domain.DecisionEngineRequest;
 
 @FunctionalInterface
 public interface Prerequisite {
-  public PrerequisiteResponse process(DecisionEngineRequest ruleEngineRequest);
+  public PrerequisiteResponse process(DecisionEngineRequest decisionEngineRequest);
 }
