@@ -111,7 +111,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       RuleResponse ruleResponse = rule.process(decisionEngineRequest, processorResponse);
       ruleResponse.setAuditTime();
       processorResponse.addRuleResponse(ruleResponse);
-      LogUtil.logAuditTimeMicros("Rule: Timespan(micro):", ruleStartTime);
+      LogUtil.logAuditTimeMicros("Rule: "+ ruleResponse.getRuleName() +" Timespan(micro):", ruleStartTime);
     }
     processorResponse.setAuditTime();
     //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):", startTime);
