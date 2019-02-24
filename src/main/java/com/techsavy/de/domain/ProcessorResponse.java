@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.techsavy.de.common.AppConfig;
 import com.techsavy.de.common.ResponseCode;
 
-public class ProcessorResponse implements Response {
+public class ProcessorResponse extends ResponseAbstract {
 
   private static final long serialVersionUID = -7819915903074744197L;
+  private static final String AUDIT_TYPE_PROCESSOR = "Processor";
 
   private String processor;
   private int score;
@@ -17,11 +19,6 @@ public class ProcessorResponse implements Response {
   private List<PrerequisiteResponse> prerequisiteResponses = new ArrayList<PrerequisiteResponse>();
   private List<RuleResponse> ruleResponses = new ArrayList<RuleResponse>();
   private Map<String, String> decisionArrivalSteps;
-  private Audit audit;
-  
-  public void setAuditTime() {
-    getAudit().setEndTime(System.currentTimeMillis());
-  }
   
   public int getScore() {
     return score;
@@ -46,15 +43,9 @@ public class ProcessorResponse implements Response {
   }
   public void setProcessor(String processor) {
     this.processor = processor;
-    audit.setName(processor);
-  }
-
-  public Audit getAudit() {
-    return audit;
-  }
-
-  public void setAudit(Audit audit) {
-    this.audit = audit;
+    if("true".equals(AppConfig.getSystemProperty(getType()+".audit.enable"))) {
+      getAudit().setName(processor);
+    }
   }
 
   public ResponseCode getResponseCode() {
@@ -86,5 +77,9 @@ public class ProcessorResponse implements Response {
   }
   public void addPrerequisiteResponse(PrerequisiteResponse prerequisiteResponse) {
     this.prerequisiteResponses.add(prerequisiteResponse);
+  }
+  @Override
+  public String getType() {
+    return AUDIT_TYPE_PROCESSOR;
   }
 }

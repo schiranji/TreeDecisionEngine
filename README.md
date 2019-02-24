@@ -17,3 +17,6 @@ Tasks
 - [ ] UI for editing and adding processors 
 - [ ] UI for adding rules
 - [ ] Use Interfaces in method signature
+- [ ] Throttling for avoiding crashes / out of memory
+- [ ] Enable auditing based on flags.
+

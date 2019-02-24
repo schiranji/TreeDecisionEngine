@@ -36,11 +36,12 @@ public class TestDecisionEngine {
     for (Future<DecisionEngineResponse> futResponse : responseList) {
       try {
         LogUtil.logObject(log, futResponse.get());
-        auditLog.info("Milti Threading time(millis):" + futResponse.get().getAudit().getTimespan());
+        LogUtil.logAuditTimeMillis("Milti Threading time(millis):", startTime);
       } catch (InterruptedException | ExecutionException e) {
         log.error("Error while processing", e);
       }
     }
+    executor.shutdown();
     System.out.println("Processing Time MultiThreading:" + (System.currentTimeMillis() - startTime));
   }
 
@@ -63,8 +64,8 @@ public class TestDecisionEngine {
   public static void main(String[] args) throws Exception {
     System.out.println("Started...");
     DecisionEngineRequest decisionEngineRequest = new DecisionEngineRequest();
-    testInvokeMultithread(decisionEngineRequest, 1);
-    testInvokeSinglethread(decisionEngineRequest, 1);
+    testInvokeMultithread(decisionEngineRequest, 1000);
+    testInvokeSinglethread(decisionEngineRequest, 1000);
     System.out.println("Done...");
   }
 }

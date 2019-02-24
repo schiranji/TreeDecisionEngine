@@ -12,24 +12,22 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.annotation.processing.Processor;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.techsavy.de.common.Constants;
 import com.techsavy.de.common.ResponseCode;
-import com.techsavy.de.domain.PrerequisiteResponse;
-import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.Audit;
 import com.techsavy.de.domain.DecisionEngineRequest;
+import com.techsavy.de.domain.PrerequisiteResponse;
+import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.RuleResponse;
+import com.techsavy.de.util.LogUtil;
 import com.techsavy.de.util.ObjectUtil;
 
 public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>>, Constants {
   private static final Logger log = LogManager.getLogger();
-  private static final Logger auditLog = LogManager.getLogger("auditlog");
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
   private static final String AUDIT_TYPE_PROCESSOR = "Processor";
@@ -52,6 +50,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   @SuppressWarnings("unchecked")
   public List<ProcessorResponse> process(ExecutorService executor, DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth, int maxWaitTimeSeconds) {
+    long startTime = System.currentTimeMillis();
     if(isLeafNode(argProcessorMap) || stopCondition() || errorCondition(processorResponse)) {
       return argProcessorResponses;
     }
@@ -83,6 +82,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
         processorResponse.setResponseCode(ResponseCode.PR_500);
         log.error("Error while retrieving processor responses. "+processor.getClass().getName(), e);
       } finally {
+        LogUtil.logAuditTimeMillis("Processor Execution time(millis):", startTime);
         processorResponse.setAuditTime();
       }
     }
@@ -102,7 +102,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     long startTime = System.currentTimeMillis();
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR, this.getClass().getName()));
     if(!processPreRequisite(decisionEngineRequest)) {
-      auditLog.info(AUDIT_MARKER, "Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
+      LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
       return null;
     }
     List<ProcessorResponse> processorResponses = new ArrayList<ProcessorResponse>();
@@ -111,12 +111,12 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       RuleResponse ruleResponse = rule.process(decisionEngineRequest, processorResponse);
       ruleResponse.setAuditTime();
       processorResponse.addRuleResponse(ruleResponse);
-      auditLog.info(AUDIT_MARKER, "Rule: Timespan(micro):"+(System.nanoTime()-ruleStartTime)/1000);
+      LogUtil.logAuditTimeMicros("Rule: Timespan(micro):", ruleStartTime);
     }
     processorResponse.setAuditTime();
-    auditLog.info(AUDIT_MARKER, "Proccessor:"+this.getClass().getName()+", Timespan from root(millis):"+processorResponse.getAudit().getTimespan());
+    //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):", startTime);
     processorResponses.add(processorResponse);
-    auditLog.info(AUDIT_MARKER, "Proccessor:"+this.getClass().getName()+", Timespan(millis):"+(System.currentTimeMillis()-startTime));
+    LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
     return processorResponses;
   }
   

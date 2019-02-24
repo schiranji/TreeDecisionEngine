@@ -4,8 +4,7 @@ import java.util.List;
 
 import com.techsavy.de.DecisionEngine;
 
-public class DecisionEngineResponse implements Response {
-
+public class DecisionEngineResponse extends ResponseAbstract {
   private static final String AUDIT_DECISION_ENGINE_TYPE = "DecisionEngine";
   private static final long serialVersionUID = -5054894114864253976L;
   List<ProcessorResponse> processorResponses;
@@ -28,17 +27,8 @@ public class DecisionEngineResponse implements Response {
     this.processorResponses = processorResponses;
   }
 
-  public Audit getAudit() {
-    return audit;
-  }
-
-  public void setAudit(Audit audit) {
-    this.audit = audit;
-  }
-
   @Override
-  public void setAuditTime() {
-    audit.setEndTime(System.currentTimeMillis());
-    
+  public String getType() {
+    return AUDIT_DECISION_ENGINE_TYPE;
   }
 }

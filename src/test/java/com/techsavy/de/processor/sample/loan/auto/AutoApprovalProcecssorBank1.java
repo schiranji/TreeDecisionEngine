@@ -24,6 +24,7 @@ public class AutoApprovalProcecssorBank1 extends BaseProcessor {
   protected void buildRules() {
     rules.add((decisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBank1:Rule1");
+      //try { Thread.currentThread().sleep(1000);} catch (InterruptedException e) { e.printStackTrace();}
       log.debug("Processing AutoApprovalProcecssorBank1:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
       processorResponse.setScore(processorResponse.getScore()+1);
       processorResponse.setDecision("DECLINED");
