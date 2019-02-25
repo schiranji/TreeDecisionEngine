@@ -10,38 +10,43 @@ import java.util.concurrent.Future;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.DecisionEngineRequest;
 import com.techsavy.de.domain.DecisionEngineResponse;
-import com.techsavy.de.processor.sample2.domain.ProcessorResponse2;
+import com.techsavy.de.domain.ProcessorResponse;
+import com.techsavy.de.util.BlockingExecutor;
 import com.techsavy.de.util.LogUtil;
 
 public class TestDecisionEngine {
   private static final Logger log = LogManager.getLogger();
-  private static final Logger auditLog = LogManager.getLogger("auditlog");
 
   private static void testInvokeMultithread(DecisionEngineRequest decisionEngineRequest, int threadCount) {
     long startTime = System.currentTimeMillis();
-    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-    List<Future<DecisionEngineResponse>> responseList = new ArrayList<Future<DecisionEngineResponse>>();
-    for (int i = 0; i < threadCount; i++) {
-      try {
-        DecisionEngine de = new DecisionEngine(decisionEngineRequest, new ProcessorResponse());
-        Future<DecisionEngineResponse> decisionEngineResponse = executor.submit(de);
-        responseList.add(decisionEngineResponse);
-      } catch (Exception e) {
-        log.error("Error while processing", e);
+    //ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    //ExecutorService executor =  new BlockingExecutor(10, 100);
+    ExecutorService executor = Executors.newCachedThreadPool();
+    try {
+      List<Future<DecisionEngineResponse>> responseList = new ArrayList<Future<DecisionEngineResponse>>();
+      for (int i = 0; i < threadCount; i++) {
+        try {
+          DecisionEngine de = new DecisionEngine(decisionEngineRequest, new ProcessorResponse());
+          Future<DecisionEngineResponse> decisionEngineResponse = executor.submit(de);
+          responseList.add(decisionEngineResponse);
+        } catch (Exception e) {
+          log.error("Error while processing", e);
+        }
       }
-    }
-    for (Future<DecisionEngineResponse> futResponse : responseList) {
-      try {
-        LogUtil.logObject(log, futResponse.get());
-        LogUtil.logAuditTimeMillis("Milti Threading time(millis):", startTime);
-      } catch (InterruptedException | ExecutionException e) {
-        log.error("Error while processing", e);
+      for (Future<DecisionEngineResponse> futResponse : responseList) {
+        try {
+          LogUtil.logObject(log, futResponse.get());
+          LogUtil.logAuditTimeMillis("Milti Threading time(millis):", startTime);
+          LogUtil.logObject(log, decisionEngineRequest);
+        } catch (InterruptedException | ExecutionException e) {
+          log.error("Error while processing", e);
+        }
       }
+    } finally {
+      executor.shutdown();
     }
-    executor.shutdown();
     System.out.println("Processing Time MultiThreading:" + (System.currentTimeMillis() - startTime));
   }
 
@@ -51,9 +56,9 @@ public class TestDecisionEngine {
     for (int i = 0; i < threadCount; i++) {
       DecisionEngineResponse decisionEngineResponse;
       try {
-        decisionEngineResponse = de.processSequentially(decisionEngineRequest, ProcessorResponse2.getInstance());
+        decisionEngineResponse = de.processSequentially();
         LogUtil.logObject(log, decisionEngineResponse);
-        auditLog.info("Single Threading time(millis):" + decisionEngineResponse.getAudit().getTimespan());
+        LogUtil.logObject(log, decisionEngineRequest);
       } catch (Exception e) {
         log.error("Error while processing", e);
       }
@@ -64,8 +69,8 @@ public class TestDecisionEngine {
   public static void main(String[] args) throws Exception {
     System.out.println("Started...");
     DecisionEngineRequest decisionEngineRequest = new DecisionEngineRequest();
-    testInvokeMultithread(decisionEngineRequest, 1000);
-    testInvokeSinglethread(decisionEngineRequest, 1000);
+    testInvokeMultithread(decisionEngineRequest, 5000);
+    testInvokeSinglethread(decisionEngineRequest, 5000);
     System.out.println("Done...");
   }
 }

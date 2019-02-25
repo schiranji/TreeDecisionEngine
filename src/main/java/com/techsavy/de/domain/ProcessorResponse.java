@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import com.techsavy.de.common.AppConfig;
 import com.techsavy.de.common.ResponseCode;
 
 public class ProcessorResponse extends ResponseAbstract {
 
   private static final long serialVersionUID = -7819915903074744197L;
+  @JsonIgnore
   private static final String AUDIT_TYPE_PROCESSOR = "Processor";
 
   private String processor;

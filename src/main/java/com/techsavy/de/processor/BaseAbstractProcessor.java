@@ -20,6 +20,7 @@ import com.techsavy.de.common.Constants;
 import com.techsavy.de.common.ResponseCode;
 import com.techsavy.de.domain.Audit;
 import com.techsavy.de.domain.DecisionEngineRequest;
+import com.techsavy.de.domain.DecisionEngineScope;
 import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.RuleResponse;
@@ -31,16 +32,14 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
   private static final String AUDIT_TYPE_PROCESSOR = "Processor";
-  public DecisionEngineRequest decisionEngineRequest;
   public ProcessorResponse processorResponse;
   public Map<String, Object> childProcessorMap;
   public int depth = 0;
   protected List<Rule> rules = new ArrayList<Rule>();
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
  
-  public void setProcessorData(BaseAbstractProcessor processor, DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse argProcessorResponse,
+  public void setProcessorData(BaseAbstractProcessor processor, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
-    processor.decisionEngineRequest = argDecisionEngineRequest;
     processor.processorResponse = argProcessorResponse;
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR,processor.getClass().getName()));
     processor.childProcessorMap = argProcessorMap;
@@ -48,7 +47,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
   
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> process(ExecutorService executor, DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
+  public List<ProcessorResponse> process(ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth, int maxWaitTimeSeconds) {
     long startTime = System.currentTimeMillis();
     if(isLeafNode(argProcessorMap) || stopCondition() || errorCondition(processorResponse)) {
@@ -59,8 +58,8 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
       ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
-      processor.setProcessorData(processor, argDecisionEngineRequest, clonedProcessorResponse, childProcessors, depth);
-      Future<List<ProcessorResponse>> processorFuture = executor.submit(processor);
+      processor.setProcessorData(processor, clonedProcessorResponse, childProcessors, depth);
+      Future<List<ProcessorResponse>> processorFuture = getExecutor().submit(processor);
       processors.put(processor, processorFuture);  
     }
     for(BaseAbstractProcessor processor:processors.keySet()) {
@@ -72,7 +71,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
             iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
             argProcessorResponses.addAll(iterProcessorResponses); 
           } 
-          process(executor, argDecisionEngineRequest, iterProcessorResponses.get(0), argProcessorResponses,
+          process(iterProcessorResponses.get(0), argProcessorResponses,
               processor.childProcessorMap, (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
         }
       } catch (TimeoutException e) {
@@ -100,15 +99,16 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
 
   private List<ProcessorResponse> processRules() {
     long startTime = System.currentTimeMillis();
+    final DecisionEngineRequest request = getDERequest();
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR, this.getClass().getName()));
-    if(!processPreRequisite(decisionEngineRequest)) {
+    if(!processPreRequisite()) {
       LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
       return null;
     }
     List<ProcessorResponse> processorResponses = new ArrayList<ProcessorResponse>();
     for (Rule rule : rules) {
       long ruleStartTime = System.nanoTime();
-      RuleResponse ruleResponse = rule.process(decisionEngineRequest, processorResponse);
+      RuleResponse ruleResponse = rule.process(request, processorResponse);
       ruleResponse.setAuditTime();
       processorResponse.addRuleResponse(ruleResponse);
       LogUtil.logAuditTimeMicros("Rule: "+ ruleResponse.getRuleName() +" Timespan(micro):", ruleStartTime);
@@ -120,10 +120,17 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     return processorResponses;
   }
   
-  protected boolean processPreRequisite(DecisionEngineRequest argDecisionEngineData) {
+  private DecisionEngineRequest getDERequest() {
+    return DecisionEngineScope.getDecisionEngineRequest();
+  }
+  private ExecutorService getExecutor() {
+    return DecisionEngineScope.getExecutorService();
+  }
+  protected boolean processPreRequisite() {
     if(prerequisites != null) {
+      final DecisionEngineRequest request = getDERequest();
       for(Prerequisite prerequisite: prerequisites) {
-        PrerequisiteResponse prerequisiteResponse = prerequisite.process(decisionEngineRequest);
+        PrerequisiteResponse prerequisiteResponse = prerequisite.process(request);
         prerequisiteResponse.setAuditTime();
         processorResponse.addPrerequisiteResponse(prerequisiteResponse);
         if(!prerequisiteResponse.isPassed()) {
@@ -143,7 +150,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> processSequentially(DecisionEngineRequest decisionEngineData, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
+  public List<ProcessorResponse> processSequentially(ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth) {
     if(isLeafNode(argProcessorMap)) {
       return argProcessorResponses;
@@ -152,10 +159,10 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
       ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
-      processor.setProcessorData(processor, decisionEngineData, clonedProcessorResponse, childProcessors, depth);
+      processor.setProcessorData(processor, clonedProcessorResponse, childProcessors, depth);
       List<ProcessorResponse> iterProcessorResponses = processor.processRules();
       if(iterProcessorResponses != null && iterProcessorResponses.size() > 0) {
-        processor.processSequentially(decisionEngineData, clonedProcessorResponse, argProcessorResponses, childProcessors, (depth+1));
+        processor.processSequentially(clonedProcessorResponse, argProcessorResponses, childProcessors, (depth+1));
         if(isLeafNode(childProcessors) || stopCondition()) {
           iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
           argProcessorResponses.addAll(iterProcessorResponses);

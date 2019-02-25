@@ -2,6 +2,7 @@ package com.techsavy.de.util;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,4 +65,14 @@ public class LogUtil {
     return timeSpan;
   }
 
+  @SuppressWarnings("unchecked")
+  public static void printMap(Logger log, Map<String, Object> argProcessorMap, String indentation) {
+    for(String key: argProcessorMap.keySet()) {
+      Object val = argProcessorMap.get(key);
+      log.debug(indentation + key);
+      if(val instanceof Map) {
+        printMap(log, (Map<String, Object>)val, indentation + "  ");
+      }
+    }
+  }
 }

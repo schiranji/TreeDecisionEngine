@@ -30,19 +30,22 @@ public class AutoApprovalProcecssorBankA extends BaseProcessor {
   protected void buildRules() {
     rules.add((decisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBankA:Rule1");
-      log.debug("Processing AutoApprovalProcecssorBankA:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      decisionEngineRequest.setTestCounter(decisionEngineRequest.getTestCounter()+1);
+      log.debug("Processing AutoApprovalProcecssorBankA:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth+", Test Counter1:"+decisionEngineRequest.getTestCounter()); 
       processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
     rules.add((decisionEngineRequest, processorResponse) -> {
+      decisionEngineRequest.setTestCounter(decisionEngineRequest.getTestCounter()+1);
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBankA:Rule2");
-      log.debug("Processing AutoApprovalProcecssorBankA:Rule2: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      log.debug("Processing AutoApprovalProcecssorBankA:Rule2: Score: "+processorResponse.getScore() +" depth:"+depth+", Test Counter2:"+decisionEngineRequest.getTestCounter()); 
       processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
     rules.add((decisionEngineRequest, processorResponse) -> {
+      decisionEngineRequest.setTestCounter(decisionEngineRequest.getTestCounter()+1);
       RuleResponse ruleResponse = RuleResponse.getInstance("AutoApprovalProcecssorBankA:Rule3");
-      log.debug("Processing AutoApprovalProcecssorBankA:Rule3: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      log.debug("Processing AutoApprovalProcecssorBankA:Rule3: Score: "+processorResponse.getScore() +" depth:"+depth+", Test Counter3:"+decisionEngineRequest.getTestCounter()); 
       processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });

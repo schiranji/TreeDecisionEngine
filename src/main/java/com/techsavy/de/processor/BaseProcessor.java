@@ -17,7 +17,7 @@ public class BaseProcessor extends BaseAbstractProcessor {
   protected void buildPrerequistes() {
     prerequisites.add((argDecisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("BaseProcessor:Prerequiste");
-      log.debug(Thread.currentThread().getName()+", Processing BaseProcessor:Prerequiste: Score: "+" depth:"+depth);
+      log.debug("Processing BaseProcessor:Prerequiste: Score: "+" depth:"+depth);
       prerequisiteResponse.setPassed(true);
       return prerequisiteResponse;
    });
@@ -27,7 +27,7 @@ public class BaseProcessor extends BaseAbstractProcessor {
   protected void buildRules() {
     rules.add((argDecisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("BaseProcessor:Rule1");
-      log.debug(Thread.currentThread().getName()+", Processing BaseProcessor:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
+      log.debug("Processing BaseProcessor:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
       processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });

@@ -1,5 +1,7 @@
 package com.techsavy.de.domain;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import com.techsavy.de.common.AppConfig;
 
 public abstract class ResponseAbstract implements Response {
@@ -24,5 +26,6 @@ public abstract class ResponseAbstract implements Response {
     this.audit = audit;
   }
   
+  @JsonIgnore
   public abstract String getType();
 }

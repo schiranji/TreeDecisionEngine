@@ -19,10 +19,10 @@ public class TestDecisionEngine2 {
     DecisionEngineRequest2 decisionEngineRequest = new DecisionEngineRequest2();
     ProcessorResponse2 processorResponse2 = ProcessorResponse2.getInstance();
     DecisionEngine de = new DecisionEngine(decisionEngineRequest, processorResponse2);
-    DecisionEngineResponse decisionEngineResponse = de.process(decisionEngineRequest, processorResponse2);
+    DecisionEngineResponse decisionEngineResponse = de.process();
     auditLog.info("Milti Threading time(millis):" + decisionEngineResponse.getAudit().getTimespan());
     LogUtil.logObject(log, decisionEngineResponse);
-    decisionEngineResponse = de.processSequentially(decisionEngineRequest, processorResponse2);
+    decisionEngineResponse = de.processSequentially();
     auditLog.info("Single Threading time(millis):" + decisionEngineResponse.getAudit().getTimespan());
     LogUtil.logObject(log, decisionEngineResponse);
     System.out.println("Done...");

@@ -1,7 +1,10 @@
 package com.techsavy.de.domain;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 public class PrerequisiteResponse extends ResponseAbstract {
 
+  @JsonIgnore
   private static final String AUDIT_PREREQUISITE_TYPE = "Prerequisite";
   private static final long serialVersionUID = 8508197356680409469L;
   private String prerequisiteName;
