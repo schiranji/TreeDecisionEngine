@@ -24,7 +24,7 @@ public class Audit implements Serializable {
   }
 
   public static Audit getInstance(String type, String name) {
-    if ("true".equals(AppConfig.getSystemProperty(type + ".audit.enable"))) {
+    if (auditEnabled(type)) {
       Audit audit = new Audit();
       audit.setStartTime(System.currentTimeMillis());
       audit.setType(type);
@@ -32,6 +32,11 @@ public class Audit implements Serializable {
       return audit;
     }
     return null;
+  }
+  
+  public static boolean auditEnabled(String type) {
+    return ( "true".equals(AppConfig.getSystemProperty(type + ".audit.enable"))) ||
+        ("true".equals(AppConfig.getSystemProperty("audit.enable")));
   }
 
   public String getType() {

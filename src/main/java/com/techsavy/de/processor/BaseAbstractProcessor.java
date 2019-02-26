@@ -81,7 +81,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
         processorResponse.setResponseCode(ResponseCode.PR_500);
         log.error("Error while retrieving processor responses. "+processor.getClass().getName(), e);
       } finally {
-        LogUtil.logAuditTimeMillis("Processor Execution time(millis):", startTime);
+        LogUtil.logAuditTimeMillis(processor.getClass().getName()+" Processor Execution time(millis):", startTime);
         processorResponse.setAuditTime();
       }
     }
@@ -98,11 +98,11 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   private List<ProcessorResponse> processRules() {
-    long startTime = System.currentTimeMillis();
+    //long startTime = System.currentTimeMillis();
     final DecisionEngineRequest request = getDERequest();
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR, this.getClass().getName()));
     if(!processPreRequisite()) {
-      LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
+      //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
       return null;
     }
     List<ProcessorResponse> processorResponses = new ArrayList<ProcessorResponse>();
@@ -116,7 +116,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     processorResponse.setAuditTime();
     //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):", startTime);
     processorResponses.add(processorResponse);
-    LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
+    //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
     return processorResponses;
   }
   

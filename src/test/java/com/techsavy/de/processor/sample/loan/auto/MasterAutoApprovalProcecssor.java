@@ -14,7 +14,7 @@ public class MasterAutoApprovalProcecssor extends BaseProcessor {
   protected void buildPrerequistes() {
     prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("MasterAutoApprovalProcecssor:Prerequiste1");
-      log.debug("Processing MasterAutoApprovalProcecssor:Prerequiste1: Score: "+" depth:"+depth );
+      log.debug("Processing MasterAutoApprovalProcecssor:Prerequiste1: Score: "+processorResponse.getScore()+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
       return prerequisiteResponse;
     });

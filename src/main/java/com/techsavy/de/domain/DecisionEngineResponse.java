@@ -8,7 +8,6 @@ public class DecisionEngineResponse extends ResponseAbstract {
   private static final String AUDIT_DECISION_ENGINE_TYPE = "DecisionEngine";
   private static final long serialVersionUID = -5054894114864253976L;
   List<ProcessorResponse> processorResponses;
-  Audit audit;
 
   private DecisionEngineResponse() { 
   }

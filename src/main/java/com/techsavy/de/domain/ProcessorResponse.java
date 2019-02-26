@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
-import com.techsavy.de.common.AppConfig;
 import com.techsavy.de.common.ResponseCode;
 
 public class ProcessorResponse extends ResponseAbstract {
@@ -46,7 +45,7 @@ public class ProcessorResponse extends ResponseAbstract {
   }
   public void setProcessor(String processor) {
     this.processor = processor;
-    if("true".equals(AppConfig.getSystemProperty(getType()+".audit.enable"))) {
+    if(Audit.auditEnabled(getType())) {
       getAudit().setName(processor);
     }
   }

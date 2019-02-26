@@ -2,6 +2,10 @@ package com.techsavy.de.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import com.techsavy.de.common.AppConfig;
 
 public class ObjectUtil {
 
@@ -13,6 +17,16 @@ public class ObjectUtil {
       return instance;
     } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
        throw new RuntimeException("Error while instantialting class.", e);
+    }
+  }
+  
+  public static ExecutorService getExecutor(int count) {
+    if("fixed".equals(AppConfig.getSystemProperty("threadpool.type"))) {
+      return Executors.newFixedThreadPool(count);
+    } else if("blocked".equals(AppConfig.getSystemProperty("threadpool.type"))) {
+      return new BlockingExecutor(count, count);
+    } else {
+      return Executors.newCachedThreadPool();
     }
   }
 }

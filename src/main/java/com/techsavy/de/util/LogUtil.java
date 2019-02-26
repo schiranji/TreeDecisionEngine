@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 import com.techsavy.de.domain.ProcessorResponse;
 
@@ -29,7 +30,9 @@ public class LogUtil {
   }
   
   public static String logObject(Logger log, Object object) {
-    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.setSerializationInclusion(Inclusion.NON_EMPTY);
+    ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
     try {
       String json = ow.writeValueAsString(object);
       log.debug(json);

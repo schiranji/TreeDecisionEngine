@@ -7,7 +7,7 @@ Rule based Decision engine where Rules are organized in Tree model. Goal of this
 * Engine will return list of Results based on processor rules.
 
 Tasks
-- [ ] Use InheritableThreadLocal for DecisionEngineRequest.
+- [X] Use InheritableThreadLocal for DecisionEngineRequest.
 - [ ] Use static for processor level map?
 - [ ] Call method is not taking arguments. See if processors can be pooled for avoiding instantiation overhead. 
 - [ ] Custom exception and better exception handling at processor failure for timeout.
@@ -17,6 +17,6 @@ Tasks
 - [ ] UI for editing and adding processors 
 - [ ] UI for adding rules
 - [ ] Use Interfaces in method signature
-- [ ] Throttling for avoiding crashes / out of memory
-- [ ] Enable auditing based on flags.
+- [X] Throttling for avoiding crashes / out of memory
+- [X] Enable auditing based on flags.
 

@@ -22,7 +22,6 @@ import com.techsavy.de.domain.DecisionEngineScope;
 import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.processor.BaseAbstractProcessor;
 import com.techsavy.de.processor.BaseProcessor;
-import com.techsavy.de.util.BlockingExecutor;
 import com.techsavy.de.util.FileUtil;
 import com.techsavy.de.util.LogUtil;
 import com.techsavy.de.util.ObjectUtil;
@@ -76,9 +75,7 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
       BaseProcessor processor = new BaseProcessor();
       Map<String, Object> map = loadProcessorMap(processorNamesMap, processorResponse, 0);
       processor.setProcessorData(processor, processorResponse, map, 0);
-      //executor = Executors.newFixedThreadPool(getMaxThreadCount());
-      //executor = new BlockingExecutor(getMaxThreadCount(), mapSize);
-      executor = Executors.newCachedThreadPool();
+      executor = ObjectUtil.getExecutor(getMaxThreadCount());
       DecisionEngineScope.setExecutorService(executor);
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
       processor.process(processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);

@@ -14,7 +14,7 @@ public class AutoApprovalProcecssorBank2 extends BaseProcessor {
   protected void buildPrerequistes() {
     prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("AutoApprovalProcecssorBank2:Prerequiste1");
-      log.debug("Processing AutoApprovalProcecssorBank2:Prerequiste1: Score: "+" depth:"+depth );
+      log.debug("Processing AutoApprovalProcecssorBank2:Prerequiste1: Score: "+processorResponse.getScore()+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
       return prerequisiteResponse;
     });
