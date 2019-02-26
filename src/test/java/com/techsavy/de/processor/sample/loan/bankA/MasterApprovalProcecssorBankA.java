@@ -14,7 +14,7 @@ public class MasterApprovalProcecssorBankA extends BaseProcessor {
   protected void buildPrerequistes() {
     prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("MasterApprovalProcecssorBankA:Prerequiste1");
-      log.debug("Processing MasterApprovalProcecssorBankA:Prerequiste1: Score: "+" depth:"+depth );
+      log.debug("Processing MasterApprovalProcecssorBankA:Prerequiste1: Score: "+processorResponse.getScore()+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
       return prerequisiteResponse;
     });

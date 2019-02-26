@@ -14,7 +14,7 @@ public class HomeApprovalProcessorBank1 extends BaseProcessor {
   protected void buildPrerequistes() {
     prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("HomeApprovalProcessorBank1:Prerequiste1");
-      log.debug("Processing HomeApprovalProcessorBank1:Prerequiste1: Score: "+" depth:"+depth );
+      log.debug("Processing HomeApprovalProcessorBank1:Prerequiste1: Score: "+processorResponse.getScore()+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
       return prerequisiteResponse;
     });

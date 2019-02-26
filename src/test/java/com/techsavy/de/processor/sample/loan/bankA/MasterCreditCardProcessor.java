@@ -14,7 +14,7 @@ public class MasterCreditCardProcessor extends BaseAbstractProcessor {
   protected void buildPrerequistes() {
     prerequisites.add((decisionEngineRequest) -> {
       PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("MasterCreditCardProcessor:Prerequiste1");
-      log.debug("Processing MasterCreditCardProcessor:Prerequiste1: Score: "+" depth:"+depth );
+      log.debug("Processing MasterCreditCardProcessor:Prerequiste1: Score: "+processorResponse.getScore()+" depth:"+depth );
       prerequisiteResponse.setPassed(true);
       return prerequisiteResponse;
     });
