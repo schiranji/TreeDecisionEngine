@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -69,14 +68,12 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
 
   public DecisionEngineResponse process() {
     long startTime = System.currentTimeMillis();
-    ExecutorService executor = null;
     try {
       DecisionEngineResponse decisionEngineResponse = DecisionEngineResponse.getInstance();
-      BaseProcessor processor = new BaseProcessor();
       Map<String, Object> map = loadProcessorMap(processorNamesMap, processorResponse, 0);
+      initExecutor();
+      BaseProcessor processor = new BaseProcessor();
       processor.setProcessorData(processor, processorResponse, map, 0);
-      executor = ObjectUtil.getExecutor(getMaxThreadCount());
-      DecisionEngineScope.setExecutorService(executor);
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
       processor.process(processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
       decisionEngineResponse.setProcessorResponses(results);
@@ -88,9 +85,12 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
       return null;
     } finally {
       DecisionEngineScope.cleanScope();
-      if (executor != null)
-        executor.shutdown();
     }
+  }
+
+  private void initExecutor() {
+    ExecutorService executor = ObjectUtil.getExecutor(getMaxThreadCount());
+    DecisionEngineScope.setExecutorService(executor);
   }
 
   private int getMaxThreadCount() {

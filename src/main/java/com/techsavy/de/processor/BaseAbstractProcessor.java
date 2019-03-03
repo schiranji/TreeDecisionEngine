@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -57,8 +56,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
-      processor.setProcessorData(processor, clonedProcessorResponse, childProcessors, depth);
+      processor.setProcessorData(processor, clone(processorResponse), childProcessors, depth);
       Future<List<ProcessorResponse>> processorFuture = getExecutor().submit(processor);
       processors.put(processor, processorFuture);  
     }
@@ -86,6 +84,10 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       }
     }
     return argProcessorResponses;
+  }
+
+  public static ProcessorResponse clone(ProcessorResponse processorResponse) {
+    return (ProcessorResponse) SerializationUtils.clone(processorResponse);
   }
 
   private boolean errorCondition(ProcessorResponse processorResponse) {
@@ -158,7 +160,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      ProcessorResponse clonedProcessorResponse = (ProcessorResponse) SerializationUtils.clone(processorResponse);
+      ProcessorResponse clonedProcessorResponse = clone(processorResponse);
       processor.setProcessorData(processor, clonedProcessorResponse, childProcessors, depth);
       List<ProcessorResponse> iterProcessorResponses = processor.processRules();
       if(iterProcessorResponses != null && iterProcessorResponses.size() > 0) {
@@ -172,13 +174,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     return argProcessorResponses;
   }
   
-  protected void sleepRandom() {
-    try {
-      Thread.sleep((new Random()).nextInt(1000));
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
+
   protected abstract void buildPrerequistes();
   protected abstract void buildRules();
 }

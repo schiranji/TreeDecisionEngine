@@ -22,6 +22,9 @@ public class DecisionEngineScope {
   
   public static void cleanScope() {
     DecisionEngineScope.setDecisionEngineRequest(null);
+    if (getExecutorService() != null) {
+      getExecutorService().shutdown();
+    }
     DecisionEngineScope.setExecutorService(null);
   }
 

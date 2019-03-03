@@ -8,15 +8,15 @@ Rule based Decision engine where Rules are organized in Tree model. Goal of this
 
 Tasks
 - [X] Use InheritableThreadLocal for DecisionEngineRequest.
+- [X] See if same level process can be launched in parallel.
+- [X] Auditing at Each level of processor and rule
+- [X] Throttling for avoiding crashes / out of memory (Using CachedThreadPool for now)
+- [X] Enable auditing based on flags.
 - [ ] Use static for processor level map?
 - [ ] Call method is not taking arguments. See if processors can be pooled for avoiding instantiation overhead. 
 - [ ] Custom exception and better exception handling at processor failure for timeout.
-- [X] See if same level process can be launched in parallel.
-- [X] Auditing at Each level of processor and rule
 - [ ] UI for designing rule tree
 - [ ] UI for editing and adding processors 
 - [ ] UI for adding rules
 - [ ] Use Interfaces in method signature
-- [X] Throttling for avoiding crashes / out of memory
-- [X] Enable auditing based on flags.
 

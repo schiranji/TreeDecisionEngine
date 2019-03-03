@@ -2,10 +2,10 @@ com.techsavy.de.processor.BaseProcessor:
   com.techsavy.de.processor.sample.loan.auto.MasterAutoApprovalProcecssor:
     com.techsavy.de.processor.sample.loan.auto.AutoApprovalProcecssorBank1:
       com.techsavy.de.processor.sample.loan.auto.AutoApprovalProcecssorBank2:
-com.techsavy.de.processor.sample.loan.home.MasterHomeApprovalProcessor:
-  com.techsavy.de.processor.sample.loan.home.HomeApprovalProcessorBank1:
-    com.techsavy.de.processor.sample.loan.home.HomeApprovalProcessorBank2:
-com.techsavy.de.processor.sample.loan.bankA.MasterApprovalProcecssorBankA:
-  com.techsavy.de.processor.sample.loan.bankA.AutoApprovalProcecssorBankA:
-    com.techsavy.de.processor.sample.loan.bankA.HomeApprovalProcessorBankA:
-      com.techsavy.de.processor.sample.loan.bankA.LoanApprovalProcessorBankA:
+  com.techsavy.de.processor.sample.loan.home.MasterHomeApprovalProcessor:
+    com.techsavy.de.processor.sample.loan.home.HomeApprovalProcessorBank1:
+      com.techsavy.de.processor.sample.loan.home.HomeApprovalProcessorBank2:
+  com.techsavy.de.processor.sample.loan.bankA.MasterApprovalProcecssorBankA:
+    com.techsavy.de.processor.sample.loan.bankA.AutoApprovalProcecssorBankA:
+      com.techsavy.de.processor.sample.loan.bankA.HomeApprovalProcessorBankA:
+        com.techsavy.de.processor.sample.loan.bankA.LoanApprovalProcessorBankA:

@@ -1,2 +1,2 @@
 com.techsavy.de.processor.BaseProcessor:
-  com.techsavy.de.processor.sample2.ExternalRequestProcessor:
+  com.techsavy.de.processor.sample2.processor.ExternalRequestProcessor:

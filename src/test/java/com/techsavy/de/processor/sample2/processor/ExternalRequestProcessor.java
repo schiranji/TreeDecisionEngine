@@ -1,4 +1,4 @@
-package com.techsavy.de.processor.sample2;
+package com.techsavy.de.processor.sample2.processor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,8 +31,8 @@ public class ExternalRequestProcessor extends BaseProcessor {
       try { Thread.sleep(1000);} catch (InterruptedException e) { e.printStackTrace();}
       processorResponse.setScore(processorResponse.getScore() + ((DecisionEngineRequest2)decisionEngineRequest).delinquencies);
       log.debug("Processing ExternalRequestProcessor:Rule1: Score: "+processorResponse.getScore() +", depth:"+depth);
-      ((ProcessorResponse2)processorResponse).setApprovedAmount(2000);
-      processorResponse.setDecision("DECLINED");
+      ((ProcessorResponse2)processorResponse).setApprovedAmount(((DecisionEngineRequest2)decisionEngineRequest).getDelinquencies());
+      processorResponse.setDecision("APPROVED");
       return ruleResponse;
     });
   }
