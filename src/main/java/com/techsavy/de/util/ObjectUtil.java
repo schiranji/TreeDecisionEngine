@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.techsavy.de.common.AppConfig;
+import com.techsavy.de.domain.DecisionEngineScope;
+import com.techsavy.de.exception.SystemException;
 
 public class ObjectUtil {
 
@@ -28,5 +30,12 @@ public class ObjectUtil {
     } else {
       return Executors.newCachedThreadPool();
     }
+  }
+  
+  public static boolean assertNotNull(Object obj) {
+    if(obj == null) {
+      throw new SystemException("Object is NULL.");
+    }
+    return true;
   }
 }
