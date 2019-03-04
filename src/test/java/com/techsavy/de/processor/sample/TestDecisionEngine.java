@@ -69,8 +69,8 @@ public class TestDecisionEngine {
   public static void main(String[] args) throws Exception {
     System.out.println("Started...");
     DecisionEngineRequest decisionEngineRequest = new DecisionEngineRequest();
-    testInvokeMultithread(decisionEngineRequest, 5000);
-    testInvokeSinglethread(decisionEngineRequest, 5000);
+    testInvokeMultithread(decisionEngineRequest, 500);
+    testInvokeSinglethread(decisionEngineRequest, 500);
     System.out.println("Done...");
   }
 }

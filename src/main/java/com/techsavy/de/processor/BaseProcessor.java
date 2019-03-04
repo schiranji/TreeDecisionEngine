@@ -16,7 +16,7 @@ public class BaseProcessor extends BaseAbstractProcessor {
     buildRules();
   }
   public BaseProcessor(ProcessorResponse processorResponse, List<ProcessorResponse> results, Map<String, Object> processorMap, int depth, int maxWaitTime) {
-    setProcessorData(this, processorResponse, processorMap, depth);
+    setProcessorData(decisionEngineRequest, this, processorResponse, processorMap, depth);
   }
 
   @Override

@@ -23,15 +23,21 @@ public class TestDecisionEngine2 implements Constants {
     for(int i=1;i<10;i++) {
       DecisionEngineRequest2 decisionEngineRequest = new DecisionEngineRequest2();
       ProcessorResponse2 processorResponse2 = ProcessorResponse2.getInstance();
-      decisionEngineRequest.setDelinquencies(i*100);
+      decisionEngineRequest.setDelinquencies(i);
       DecisionEngine de = new DecisionEngine(decisionEngineRequest, processorResponse2);
       DecisionEngineResponse decisionEngineResponse = de.process();
       auditLog.info("Milti Threading time(millis):" + (System.currentTimeMillis()-startTime));
+      LogUtil.logObject(log, decisionEngineResponse);    
+    }
+    for(int i=1;i<10;i++) {
       startTime = System.currentTimeMillis();
-      LogUtil.logObject(log, decisionEngineResponse);
-      decisionEngineResponse = de.processSequentially();
+      DecisionEngineRequest2 decisionEngineRequest = new DecisionEngineRequest2();
+      decisionEngineRequest.setDelinquencies(i);
+      ProcessorResponse2 processorResponse2 = ProcessorResponse2.getInstance();
+      DecisionEngine de = new DecisionEngine(decisionEngineRequest, processorResponse2);
+      DecisionEngineResponse decisionEngineResponse = de.processSequentially();
       auditLog.info("Single Threading time(millis):" + (System.currentTimeMillis()-startTime));
-      LogUtil.logObject(log, decisionEngineResponse);      
+      LogUtil.logObject(log, decisionEngineResponse); 
     }
     System.out.println("Done...");
   }

@@ -19,7 +19,6 @@ import com.techsavy.de.common.Constants;
 import com.techsavy.de.common.ResponseCode;
 import com.techsavy.de.domain.Audit;
 import com.techsavy.de.domain.DecisionEngineRequest;
-import com.techsavy.de.domain.DecisionEngineScope;
 import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.RuleResponse;
@@ -31,14 +30,16 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
   private static final String AUDIT_TYPE_PROCESSOR = "Processor";
+  public DecisionEngineRequest decisionEngineRequest;
   public ProcessorResponse processorResponse;
   public Map<String, Object> childProcessorMap;
   public int depth = 0;
   protected List<Rule> rules = new ArrayList<Rule>();
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
  
-  public void setProcessorData(BaseAbstractProcessor processor, ProcessorResponse argProcessorResponse,
+  public void setProcessorData(DecisionEngineRequest decisionEngineRequest, BaseAbstractProcessor processor, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
+    processor.decisionEngineRequest = decisionEngineRequest;
     processor.processorResponse = argProcessorResponse;
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR,processor.getClass().getName()));
     processor.childProcessorMap = argProcessorMap;
@@ -46,7 +47,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
   
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> process(ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
+  public List<ProcessorResponse> process(DecisionEngineRequest decisionEngineRequest, ExecutorService executor, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth, int maxWaitTimeSeconds) {
     long startTime = System.currentTimeMillis();
     if(isLeafNode(argProcessorMap) || stopCondition() || errorCondition(processorResponse)) {
@@ -56,8 +57,8 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      processor.setProcessorData(processor, clone(processorResponse), childProcessors, depth);
-      Future<List<ProcessorResponse>> processorFuture = getExecutor().submit(processor);
+      processor.setProcessorData(decisionEngineRequest, processor, clone(processorResponse), childProcessors, depth);
+      Future<List<ProcessorResponse>> processorFuture = executor.submit(processor);
       processors.put(processor, processorFuture);  
     }
     for(BaseAbstractProcessor processor:processors.keySet()) {
@@ -69,7 +70,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
             iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
             argProcessorResponses.addAll(iterProcessorResponses); 
           } 
-          process(iterProcessorResponses.get(0), argProcessorResponses,
+          process(decisionEngineRequest, executor, iterProcessorResponses.get(0), argProcessorResponses,
               processor.childProcessorMap, (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
         }
       } catch (TimeoutException e) {
@@ -101,7 +102,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
 
   private List<ProcessorResponse> processRules() {
     //long startTime = System.currentTimeMillis();
-    final DecisionEngineRequest request = getDERequest();
+    DecisionEngineRequest request = getDERequest();
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR, this.getClass().getName()));
     if(!processPreRequisite()) {
       //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
@@ -123,11 +124,13 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
   
   private DecisionEngineRequest getDERequest() {
-    return DecisionEngineScope.getDecisionEngineRequest();
+    ObjectUtil.assertNotNull(decisionEngineRequest);
+    return decisionEngineRequest;
+    //return DecisionEngineScope.getDecisionEngineRequest();
   }
-  private ExecutorService getExecutor() {
+  /*private ExecutorService getExecutor() {
     return DecisionEngineScope.getExecutorService();
-  }
+  }*/
   protected boolean processPreRequisite() {
     if(prerequisites != null) {
       final DecisionEngineRequest request = getDERequest();
@@ -152,7 +155,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   @SuppressWarnings("unchecked")
-  public List<ProcessorResponse> processSequentially(ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
+  public List<ProcessorResponse> processSequentially(DecisionEngineRequest decisionEngineRequest, ProcessorResponse processorResponse, List<ProcessorResponse> argProcessorResponses,
       Map<String, Object> argProcessorMap, int depth) {
     if(isLeafNode(argProcessorMap)) {
       return argProcessorResponses;
@@ -161,10 +164,10 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
       ProcessorResponse clonedProcessorResponse = clone(processorResponse);
-      processor.setProcessorData(processor, clonedProcessorResponse, childProcessors, depth);
+      processor.setProcessorData(decisionEngineRequest, processor, clonedProcessorResponse, childProcessors, depth);
       List<ProcessorResponse> iterProcessorResponses = processor.processRules();
       if(iterProcessorResponses != null && iterProcessorResponses.size() > 0) {
-        processor.processSequentially(clonedProcessorResponse, argProcessorResponses, childProcessors, (depth+1));
+        processor.processSequentially(decisionEngineRequest, clonedProcessorResponse, argProcessorResponses, childProcessors, (depth+1));
         if(isLeafNode(childProcessors) || stopCondition()) {
           iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
           argProcessorResponses.addAll(iterProcessorResponses);

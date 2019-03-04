@@ -17,27 +17,28 @@ import org.yaml.snakeyaml.Yaml;
 import com.techsavy.de.common.Constants;
 import com.techsavy.de.domain.DecisionEngineRequest;
 import com.techsavy.de.domain.DecisionEngineResponse;
-import com.techsavy.de.domain.DecisionEngineScope;
 import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.processor.BaseAbstractProcessor;
 import com.techsavy.de.processor.BaseProcessor;
 import com.techsavy.de.util.FileUtil;
 import com.techsavy.de.util.LogUtil;
 import com.techsavy.de.util.ObjectUtil;
+import com.techsavy.de.util.RuntimeUtil;
 
 public class DecisionEngine implements Callable<DecisionEngineResponse>, Constants {
   private static final Logger log = LogManager.getLogger();
   private static Map<String, Object> processorNamesMap;
   private static int MAX_THREADPOOL_SIZE = 20;
   private static int mapSize = 0;
+  private DecisionEngineRequest decisionEngineRequest;
   private ProcessorResponse processorResponse;
 
   static {
+    log.info(RuntimeUtil.getRuntimeEnvironment());
     Yaml yaml = new Yaml();
     String configFileName = System.getProperty(PROCESSORS_FILE_PARAM_NAME);
     configFileName = (StringUtils.isNotBlank(configFileName)) ? configFileName : DEFAULT_PROCESSOR_CONFIG_FILE_NAME;
-    try (
-        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFileName);) {
+    try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFileName);) {
       processorNamesMap = yaml.load(inputStream);
       LogUtil.logYml(log, processorNamesMap);
       mapSize = (new Long(FileUtil.getLineCount(configFileName))).intValue();
@@ -48,7 +49,8 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
 
   public DecisionEngine(DecisionEngineRequest argDecisionEngineRequest, ProcessorResponse processorResponse) {
     this.processorResponse = processorResponse;
-    DecisionEngineScope.setDecisionEngineRequest(argDecisionEngineRequest);
+    this.decisionEngineRequest = argDecisionEngineRequest;
+    //DecisionEngineScope.setDecisionEngineRequest(argDecisionEngineRequest);
   }
 
   public Map<String, Object> loadProcessorMap(Map<String, Object> argProcessorMap,
@@ -56,7 +58,7 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
     Map<String, Object> processorMap = new HashMap<String, Object>();
     for (String key : argProcessorMap.keySet()) {
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      processor.setProcessorData(processor, processorResponse, processorMap, depth);
+      processor.setProcessorData(decisionEngineRequest, processor, processorResponse, processorMap, depth);
       if (argProcessorMap.get(key) != null) {
         processorMap.put(key, processor);
       } else {
@@ -69,13 +71,14 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
   public DecisionEngineResponse process() {
     long startTime = System.currentTimeMillis();
     try {
+      ObjectUtil.assertNotNull(decisionEngineRequest);
       DecisionEngineResponse decisionEngineResponse = DecisionEngineResponse.getInstance();
       Map<String, Object> map = loadProcessorMap(processorNamesMap, processorResponse, 0);
       initExecutor();
       BaseProcessor processor = new BaseProcessor();
-      processor.setProcessorData(processor, processorResponse, map, 0);
+      processor.setProcessorData(decisionEngineRequest, processor, processorResponse, map, 0);
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
-      processor.process(processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
+      processor.process(decisionEngineRequest, initExecutor(), processorResponse, results, map, 0, PROCESSOR_MAX_WAIT_TIME);
       decisionEngineResponse.setProcessorResponses(results);
       decisionEngineResponse.setAuditTime();
       LogUtil.logAuditTimeMillis("Decision Engine Response time(millis):", startTime);
@@ -84,32 +87,37 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
       t.printStackTrace();
       return null;
     } finally {
-      DecisionEngineScope.cleanScope();
+      //DecisionEngineScope.cleanScope();
     }
   }
 
-  private void initExecutor() {
+  private ExecutorService initExecutor() {
     ExecutorService executor = ObjectUtil.getExecutor(getMaxThreadCount());
-    DecisionEngineScope.setExecutorService(executor);
+    //DecisionEngineScope.setExecutorService(executor);
+    return executor;
   }
 
   private int getMaxThreadCount() {
     return (mapSize > MAX_THREADPOOL_SIZE) ? MAX_THREADPOOL_SIZE : mapSize;
   }
 
-  public DecisionEngineResponse processSequentially() throws Exception {
+  public DecisionEngineResponse processSequentially() {
     try {
+      ObjectUtil.assertNotNull(decisionEngineRequest);
       DecisionEngineResponse decisionEngineResponse = DecisionEngineResponse.getInstance();
       BaseProcessor processor = new BaseProcessor();
       Map<String, Object> map = loadProcessorMap(processorNamesMap, processorResponse, 0);
-      processor.setProcessorData(processor, processorResponse, map, 0);
+      processor.setProcessorData(decisionEngineRequest, processor, processorResponse, map, 0);
       List<ProcessorResponse> results = new ArrayList<ProcessorResponse>();
-      processor.processSequentially(processorResponse, results, map, 0);
+      processor.processSequentially(decisionEngineRequest, processorResponse, results, map, 0);
       decisionEngineResponse.setProcessorResponses(results);
       decisionEngineResponse.setAuditTime();
       return decisionEngineResponse;
+    } catch (Throwable t) {
+      log.error("Error while running process", t);
+      return null;
     } finally {
-      DecisionEngineScope.cleanScope();
+      //DecisionEngineScope.cleanScope();
     }
   }
 

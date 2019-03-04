@@ -25,25 +25,31 @@ public class TestDataFromFile implements Constants {
     System.out.println("Started TestDataFromFile...");
     long engineStartTime = System.currentTimeMillis();
     System.setProperty(PROCESSORS_FILE_PARAM_NAME, PROCESSORS2_YML);
+    long startTime = System.currentTimeMillis();
     try (Stream<String> stream = Files.lines(Paths.get(ClassLoader.getSystemResource(TEST_DATA_FILE).toURI()))) {
       stream.forEach(line -> {
-        long startTime = System.currentTimeMillis();
         DecisionEngineRequest2 decisionEngineRequest = getDecisionEngineRequest(line);
+        decisionEngineRequest.setDelinquencies(Integer.parseInt(line));
         ProcessorResponse2 processorResponse2 = ProcessorResponse2.getInstance();
         DecisionEngine de = new DecisionEngine(decisionEngineRequest, processorResponse2);
         DecisionEngineResponse decisionEngineResponse = de.process();
-        auditLog.info("Milti Threading time(millis):" + (System.currentTimeMillis()-startTime));
-        LogUtil.logObject(log, decisionEngineResponse);
-        try {
-          decisionEngineResponse = de.processSequentially();
-        } catch (Exception e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        auditLog.info("Single Threading time(millis):" + (System.currentTimeMillis()-startTime));
         LogUtil.logObject(log, decisionEngineResponse);
       });
     } catch (IOException e) { log.error("Error while closing stream.", e); }
+    auditLog.info("Milti Threading time(millis):" + (System.currentTimeMillis()-startTime));
+    
+    startTime = System.currentTimeMillis();
+    try (Stream<String> stream = Files.lines(Paths.get(ClassLoader.getSystemResource(TEST_DATA_FILE).toURI()))) {
+      stream.forEach(line -> {
+        DecisionEngineRequest2 decisionEngineRequest = getDecisionEngineRequest(line);
+        decisionEngineRequest.setDelinquencies(Integer.parseInt(line));
+        ProcessorResponse2 processorResponse2 = ProcessorResponse2.getInstance();
+        DecisionEngine de = new DecisionEngine(decisionEngineRequest, processorResponse2);
+        DecisionEngineResponse decisionEngineResponse = de.processSequentially();
+        LogUtil.logObject(log, decisionEngineResponse);
+      });
+    } catch (IOException e) { log.error("Error while closing stream.", e); }
+    auditLog.info("Single Threading time(millis):" + (System.currentTimeMillis()-startTime));
     System.out.println("Done TestDataFromFile..." + (System.currentTimeMillis()-engineStartTime));
   }
 

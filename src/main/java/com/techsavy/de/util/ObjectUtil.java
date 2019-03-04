@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.techsavy.de.common.AppConfig;
-import com.techsavy.de.domain.DecisionEngineScope;
 import com.techsavy.de.exception.SystemException;
 
 public class ObjectUtil {
@@ -17,8 +16,10 @@ public class ObjectUtil {
       Constructor<?> constructor = clazz.getConstructor();
       Object instance = constructor.newInstance();
       return instance;
-    } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-       throw new RuntimeException("Error while instantialting class.", e);
+    } catch (ClassNotFoundException | NoSuchMethodException e) {
+       throw new SystemException("Error while instantialting class. Make sure the it is in classpath and has no arg constructor." + className, e);
+    } catch (SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+      throw new SystemException("Error while instantialting class." + className, e);
     }
   }
   
