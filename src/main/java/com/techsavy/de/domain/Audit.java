@@ -35,8 +35,8 @@ public class Audit implements Serializable {
   }
   
   public static boolean auditEnabled(String type) {
-    return ( "true".equals(AppConfig.getSystemProperty(type + ".audit.enable"))) ||
-        ("true".equals(AppConfig.getSystemProperty("audit.enable")));
+    return ( "true".equals(AppConfig.getProperty(type.toLowerCase() + ".audit.enable"))) ||
+        ("true".equals(AppConfig.getProperty("audit.enable")));
   }
 
   public String getType() {
