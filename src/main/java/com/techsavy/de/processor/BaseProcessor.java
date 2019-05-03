@@ -11,6 +11,7 @@ import com.techsavy.de.domain.RuleResponse;
 
 public class BaseProcessor extends BaseAbstractProcessor {
   private static final Logger log = LogManager.getLogger();
+  private static final String PROCESSOR_VERSION = "1.0.0";
   public BaseProcessor() {
     buildPrerequistes();
     buildRules();
@@ -32,4 +33,10 @@ public class BaseProcessor extends BaseAbstractProcessor {
       return ruleResponse;
     });
   }
+  @Override
+  protected String getProcessorVersion() {
+    return PROCESSOR_VERSION;
+  }
+  
+  
 }

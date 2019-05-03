@@ -9,6 +9,7 @@ import com.techsavy.de.processor.BaseAbstractProcessor;
 
 public class MasterCreditCardProcessor extends BaseAbstractProcessor {
   private static final Logger log = LogManager.getLogger();
+  private static final String PROCESSOR_VERSION = "1.0.0";
   
   @Override
   protected void buildPrerequistes() {
@@ -29,5 +30,10 @@ public class MasterCreditCardProcessor extends BaseAbstractProcessor {
       processorResponse.setDecision("DECLINED");
       return ruleResponse;
     });
+  }
+
+  @Override
+  protected String getProcessorVersion() {
+    return PROCESSOR_VERSION;
   }
 }

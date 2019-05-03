@@ -5,11 +5,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.RuleResponse;
-import com.techsavy.de.processor.BaseProcessor;
+import com.techsavy.de.processor.BaseAbstractProcessor;
 
-public class LoanApprovalProcessorBankA extends BaseProcessor {
+public class LoanApprovalProcessorBankA extends BaseAbstractProcessor {
   private static final Logger log = LogManager.getLogger();
-  
+  private static final String PROCESSOR_VERSION = "1.0.0";
   @Override
   protected void buildPrerequistes() {
     prerequisites.add((decisionEngineRequest) -> {
@@ -28,5 +28,10 @@ public class LoanApprovalProcessorBankA extends BaseProcessor {
       processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
+  }
+  
+  @Override
+  protected String getProcessorVersion() {
+    return PROCESSOR_VERSION;
   }
 }

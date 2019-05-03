@@ -36,6 +36,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   public int depth = 0;
   protected List<Rule> rules = new ArrayList<Rule>();
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
+  protected List<Postrequisite> postrequisites = new ArrayList<Postrequisite>();
  
   public void setProcessorData(DecisionEngineRequest decisionEngineRequest, BaseAbstractProcessor processor, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
@@ -101,11 +102,9 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   }
 
   private List<ProcessorResponse> processRules() {
-    //long startTime = System.currentTimeMillis();
     DecisionEngineRequest request = getDERequest();
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR, this.getClass().getName()));
     if(!processPreRequisite()) {
-      //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
       return null;
     }
     List<ProcessorResponse> processorResponses = new ArrayList<ProcessorResponse>();
@@ -117,9 +116,8 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       LogUtil.logAuditTimeMicros("Rule: "+ ruleResponse.getRuleName() +" Timespan(micro):", ruleStartTime);
     }
     processorResponse.setAuditTime();
-    //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan from root(millis):", startTime);
     processorResponses.add(processorResponse);
-    //LogUtil.logAuditTimeMillis("Proccessor:"+this.getClass().getName()+", Timespan(millis):", startTime);
+    processPostRequisite();
     return processorResponses;
   }
   
@@ -134,6 +132,25 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   protected boolean processPreRequisite() {
     if(prerequisites != null) {
       final DecisionEngineRequest request = getDERequest();
+      //TODO ?? start storing request and results
+      //TODO ?? Check if Processor version is same as previously stored request then return prev results instead of processing again.
+      for(Prerequisite prerequisite: prerequisites) {
+        PrerequisiteResponse prerequisiteResponse = prerequisite.process(request);
+        prerequisiteResponse.setAuditTime();
+        processorResponse.addPrerequisiteResponse(prerequisiteResponse);
+        if(!prerequisiteResponse.isPassed()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  
+  protected boolean processPostRequisite() {
+    if(postrequisites != null) {
+      final DecisionEngineRequest request = getDERequest();
+      //TODO ?? start storing request and results
+      //TODO ?? Check if Processor version is same as previously stored request then return prev results instead of processing again.
       for(Prerequisite prerequisite: prerequisites) {
         PrerequisiteResponse prerequisiteResponse = prerequisite.process(request);
         prerequisiteResponse.setAuditTime();
@@ -180,4 +197,5 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
 
   protected abstract void buildPrerequistes();
   protected abstract void buildRules();
+  protected abstract String getProcessorVersion();
 }

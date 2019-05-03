@@ -26,4 +26,9 @@ public abstract class ResponseAbstract implements Response {
   
   @JsonIgnore
   public abstract String getType();
+  
+  //@JsonIgnore
+  //TODO Based on result processor version and result expiration date
+  //public abstract String getIsResultStillValid();
+
 }
