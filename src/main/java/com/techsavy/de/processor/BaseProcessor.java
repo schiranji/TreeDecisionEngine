@@ -1,12 +1,8 @@
 package com.techsavy.de.processor;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.RuleResponse;
 
 public class BaseProcessor extends BaseAbstractProcessor {
@@ -15,9 +11,6 @@ public class BaseProcessor extends BaseAbstractProcessor {
   public BaseProcessor() {
     buildPrerequistes();
     buildRules();
-  }
-  public BaseProcessor(ProcessorResponse processorResponse, List<ProcessorResponse> results, Map<String, Object> processorMap, int depth, int maxWaitTime) {
-    setProcessorData(decisionEngineRequest, this, processorResponse, processorMap, depth);
   }
 
   @Override
@@ -37,6 +30,4 @@ public class BaseProcessor extends BaseAbstractProcessor {
   protected String getProcessorVersion() {
     return PROCESSOR_VERSION;
   }
-  
-  
 }

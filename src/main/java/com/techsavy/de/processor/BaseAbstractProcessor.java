@@ -26,6 +26,8 @@ import com.techsavy.de.util.LogUtil;
 import com.techsavy.de.util.ObjectUtil;
 
 public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>>, Constants {
+  private static final String HTTP_PROCESSOR = "com.techsavy.de.processor.HttpProcessor";
+
   private static final Logger log = LogManager.getLogger();
   
   private static int CHILD_PROCESSOR_MAX_WAIT_TIME = 3;
@@ -56,8 +58,13 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     }
     Map<BaseAbstractProcessor, Future<List<ProcessorResponse>>> processors = new HashMap<BaseAbstractProcessor, Future<List<ProcessorResponse>>>();
     for (String key : argProcessorMap.keySet()) {
-      Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
+      Map<String, Object> childProcessors = null;
+      if(isHttpProcessor(key)) {
+        ((HttpProcessor)processor).setParams((String)argProcessorMap.get(key));
+      } else {
+        childProcessors = (Map<String, Object>)argProcessorMap.get(key);        
+      }
       processor.setProcessorData(decisionEngineRequest, processor, clone(processorResponse), childProcessors, depth);
       Future<List<ProcessorResponse>> processorFuture = executor.submit(processor);
       processors.put(processor, processorFuture);  
@@ -86,6 +93,10 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       }
     }
     return argProcessorResponses;
+  }
+
+  private boolean isHttpProcessor(String key) {
+    return key.equals(HTTP_PROCESSOR);
   }
 
   public static ProcessorResponse clone(ProcessorResponse processorResponse) {
@@ -178,8 +189,13 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       return argProcessorResponses;
     }
     for (String key : argProcessorMap.keySet()) {
-      Map<String, Object> childProcessors = (Map<String, Object>)argProcessorMap.get(key);
+      Map<String, Object> childProcessors = null;
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
+      if(isHttpProcessor(key)) {
+        ((HttpProcessor)processor).setParams((String)argProcessorMap.get(key));
+      } else {
+        childProcessors = (Map<String, Object>)argProcessorMap.get(key);        
+      }
       ProcessorResponse clonedProcessorResponse = clone(processorResponse);
       processor.setProcessorData(decisionEngineRequest, processor, clonedProcessorResponse, childProcessors, depth);
       List<ProcessorResponse> iterProcessorResponses = processor.processRules();
