@@ -26,7 +26,6 @@ import com.techsavy.de.util.LogUtil;
 import com.techsavy.de.util.ObjectUtil;
 
 public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>>, Constants {
-  private static final String HTTP_PROCESSOR = "com.techsavy.de.processor.HttpProcessor";
 
   private static final Logger log = LogManager.getLogger();
   
@@ -60,7 +59,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     for (String key : argProcessorMap.keySet()) {
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
       Map<String, Object> childProcessors = null;
-      if(isHttpProcessor(key)) {
+      if(isHttpProcessor(processor)) {
         ((HttpProcessor)processor).setParams((String)argProcessorMap.get(key));
       } else {
         childProcessors = (Map<String, Object>)argProcessorMap.get(key);        
@@ -95,8 +94,8 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     return argProcessorResponses;
   }
 
-  private boolean isHttpProcessor(String key) {
-    return key.equals(HTTP_PROCESSOR);
+  private boolean isHttpProcessor(Object obj) {
+    return obj instanceof HttpProcessor;
   }
 
   public static ProcessorResponse clone(ProcessorResponse processorResponse) {
@@ -126,9 +125,13 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       processorResponse.addRuleResponse(ruleResponse);
       LogUtil.logAuditTimeMicros("Rule: "+ ruleResponse.getRuleName() +" Timespan(micro):", ruleStartTime);
     }
-    processorResponse.setAuditTime();
-    processorResponses.add(processorResponse);
-    processPostRequisite();
+    if(isHttpProcessor(this)) {
+      processorResponses.addAll(((HttpProcessor)this).processorResponses);
+    } else {
+      processorResponse.setAuditTime();
+      processorResponses.add(processorResponse);
+      processPostRequisite();
+    }
     return processorResponses;
   }
   
@@ -191,7 +194,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = null;
       BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
-      if(isHttpProcessor(key)) {
+      if(isHttpProcessor(processor)) {
         ((HttpProcessor)processor).setParams((String)argProcessorMap.get(key));
       } else {
         childProcessors = (Map<String, Object>)argProcessorMap.get(key);        

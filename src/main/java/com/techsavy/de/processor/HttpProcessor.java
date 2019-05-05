@@ -1,11 +1,15 @@
 package com.techsavy.de.processor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.techsavy.de.domain.DecisionEngineRequest;
+import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.RuleResponse;
 import com.techsavy.de.util.FileUtil;
 import com.techsavy.de.util.HttpUtil;
@@ -17,6 +21,7 @@ public class HttpProcessor extends BaseProcessor {
   private String fileName;
   private String fileContents;
   private HashMap<String, String> params;
+  List<ProcessorResponse> processorResponses;
   
   @Override
   protected void buildPrerequistes() {
@@ -27,12 +32,28 @@ public class HttpProcessor extends BaseProcessor {
     rules.add((argDecisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("HttpProcessor:Rule1");
       log.debug("Processing HttpProcessor:Rule1: Url: "+params.get("url"));
-      HttpUtil.postRequest(getParam("url"), params, argDecisionEngineRequest);
+      String requestBody = transformRequest(argDecisionEngineRequest);
+      String response = HttpUtil.postRequest(getParam("url"), params, requestBody);
+      processorResponses = transformResult(response);
       processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
     });
   }
   
+  private String transformRequest(DecisionEngineRequest argDecisionEngineRequest) {
+    try {
+      return JsonUtil.getJson(argDecisionEngineRequest);
+    } catch (IOException e) {
+      log.error("Error while tranforming request. " + argDecisionEngineRequest.getClass().getName(), e);
+    }
+    return null;
+  }
+
+  private List<ProcessorResponse> transformResult(String response) {
+    // TODO write trasform from response to List of ProcessorResponses
+    return new ArrayList<ProcessorResponse>();
+  }
+
   @Override
   protected String getProcessorVersion() {
     return PROCESSOR_VERSION;

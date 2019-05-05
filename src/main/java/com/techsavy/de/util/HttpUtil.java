@@ -12,13 +12,11 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.techsavy.de.domain.DecisionEngineRequest;
-
 public class HttpUtil {
 
   private static final Logger log = LogManager.getLogger();
 
-  public static Object postRequest(String urlStr, Map<String, String> params, DecisionEngineRequest request) {
+  public static String postRequest(String urlStr, Map<String, String> params, String request) {
     try {
       URL url = new URL(urlStr);
       HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -29,7 +27,7 @@ public class HttpUtil {
       con.setDoOutput(true);
       OutputStream outStream = con.getOutputStream();
       OutputStreamWriter outStreamWriter = new OutputStreamWriter(outStream, "UTF-8");
-      outStreamWriter.write(JsonUtil.getJson(request));
+      outStreamWriter.write(request);
       outStreamWriter.flush();
       outStreamWriter.close();
       outStream.close();
