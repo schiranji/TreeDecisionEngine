@@ -1,0 +1,2 @@
+com.techsavy.de.processor.BaseProcessor:
+  com.techsavy.de.processor.sample3.processor.XlsProcessor:

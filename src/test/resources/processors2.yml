@@ -1,2 +1,3 @@
 com.techsavy.de.processor.BaseProcessor:
+  com.techsavy.de.processor.HttpProcessor: testhttp.json
   com.techsavy.de.processor.sample2.processor.ExternalRequestProcessor:

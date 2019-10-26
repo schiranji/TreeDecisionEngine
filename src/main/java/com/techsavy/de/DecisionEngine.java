@@ -18,7 +18,7 @@ import com.techsavy.de.common.Constants;
 import com.techsavy.de.domain.DecisionEngineRequest;
 import com.techsavy.de.domain.DecisionEngineResponse;
 import com.techsavy.de.domain.ProcessorResponse;
-import com.techsavy.de.processor.BaseAbstractProcessor;
+import com.techsavy.de.processor.AbstractProcessor;
 import com.techsavy.de.processor.BaseProcessor;
 import com.techsavy.de.util.FileUtil;
 import com.techsavy.de.util.LogUtil;
@@ -57,7 +57,7 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
       ProcessorResponse processorResponse, int depth) throws Exception {
     Map<String, Object> processorMap = new HashMap<String, Object>();
     for (String key : argProcessorMap.keySet()) {
-      BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
+      AbstractProcessor processor = (AbstractProcessor) ObjectUtil.getInstanceByName(key);
       processor.setProcessorData(decisionEngineRequest, processor, processorResponse, processorMap, depth);
       if (argProcessorMap.get(key) != null) {
         processorMap.put(key, processor);

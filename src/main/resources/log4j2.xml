@@ -2,10 +2,13 @@
     <Appenders> 
         <File name="FILE" fileName="logs/app.log"> 
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/> 
-        </File> 
+        </File>
         <File name="AUDIT" fileName="logs/audit.log"> 
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] - %msg%n"/> 
         </File> 
+	    <Console name="STDOUT" target="SYSTEM_OUT">
+	      <PatternLayout pattern="%m%n"/>
+	    </Console>
     </Appenders> 
     <Loggers> 
         <Logger name="auditlog" level="DEBUG" additivity="false"> 
@@ -13,6 +16,7 @@
         </Logger> 
         <Logger name="com.techsavy" level="TRACE" additivity="false"> 
             <AppenderRef ref="FILE"/> 
+            <AppenderRef ref="STDOUT"/>
         </Logger> 
         <Root level="info"> 
             <AppenderRef ref="FILE"/> 

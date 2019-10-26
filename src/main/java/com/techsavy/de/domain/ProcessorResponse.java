@@ -1,6 +1,7 @@
 package com.techsavy.de.domain;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class ProcessorResponse extends ResponseAbstract {
   private ResponseCode responseCode = ResponseCode.PR_200;
   private List<PrerequisiteResponse> prerequisiteResponses = new ArrayList<PrerequisiteResponse>();
   private List<RuleResponse> ruleResponses = new ArrayList<RuleResponse>();
-  private Map<String, String> decisionArrivalSteps;
+  private Map<String, String> decisionArrivalSteps = new HashMap<>();
   
   public int getScore() {
     return score;

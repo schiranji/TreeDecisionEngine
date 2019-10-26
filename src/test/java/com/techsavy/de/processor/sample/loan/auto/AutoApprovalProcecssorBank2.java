@@ -5,9 +5,9 @@ import org.apache.logging.log4j.Logger;
 
 import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.RuleResponse;
-import com.techsavy.de.processor.BaseAbstractProcessor;
+import com.techsavy.de.processor.AbstractProcessor;
 
-public class AutoApprovalProcecssorBank2 extends BaseAbstractProcessor {
+public class AutoApprovalProcecssorBank2 extends AbstractProcessor {
   private static final Logger log = LogManager.getLogger();
   private static final String PROCESSOR_VERSION = "1.0.0";
   @Override

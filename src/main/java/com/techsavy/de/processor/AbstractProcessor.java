@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -15,7 +14,6 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.techsavy.de.common.Constants;
 import com.techsavy.de.common.ResponseCode;
 import com.techsavy.de.domain.Audit;
 import com.techsavy.de.domain.DecisionEngineRequest;
@@ -25,7 +23,7 @@ import com.techsavy.de.domain.RuleResponse;
 import com.techsavy.de.util.LogUtil;
 import com.techsavy.de.util.ObjectUtil;
 
-public abstract class BaseAbstractProcessor implements Callable<List<ProcessorResponse>>, Constants {
+public abstract class AbstractProcessor implements ProcessorInt {
 
   private static final Logger log = LogManager.getLogger();
   
@@ -39,13 +37,13 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
   protected List<Postrequisite> postrequisites = new ArrayList<Postrequisite>();
  
-  public void setProcessorData(DecisionEngineRequest decisionEngineRequest, BaseAbstractProcessor processor, ProcessorResponse argProcessorResponse,
+  public void setProcessorData(DecisionEngineRequest decisionEngineRequest, ProcessorInt processor, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
-    processor.decisionEngineRequest = decisionEngineRequest;
-    processor.processorResponse = argProcessorResponse;
+    processor.setDecisionEngineRequest(decisionEngineRequest);
+    processor.setProcessorResponse(argProcessorResponse);
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR,processor.getClass().getName()));
-    processor.childProcessorMap = argProcessorMap;
-    processor.depth = depth;
+    processor.setChildProcessorMap(argProcessorMap);
+    processor.setDepth(depth);
   }
   
   @SuppressWarnings("unchecked")
@@ -55,9 +53,9 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     if(isLeafNode(argProcessorMap) || stopCondition() || errorCondition(processorResponse)) {
       return argProcessorResponses;
     }
-    Map<BaseAbstractProcessor, Future<List<ProcessorResponse>>> processors = new HashMap<BaseAbstractProcessor, Future<List<ProcessorResponse>>>();
+    Map<ProcessorInt, Future<List<ProcessorResponse>>> processors = new HashMap<ProcessorInt, Future<List<ProcessorResponse>>>();
     for (String key : argProcessorMap.keySet()) {
-      BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
+      ProcessorInt processor = (ProcessorInt) ObjectUtil.getInstanceByName(key);
       Map<String, Object> childProcessors = null;
       if(isHttpProcessor(processor)) {
         ((HttpProcessor)processor).setParams((String)argProcessorMap.get(key));
@@ -68,17 +66,17 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       Future<List<ProcessorResponse>> processorFuture = executor.submit(processor);
       processors.put(processor, processorFuture);  
     }
-    for(BaseAbstractProcessor processor:processors.keySet()) {
+    for(ProcessorInt processor:processors.keySet()) {
       try {
         Future<List<ProcessorResponse>> processorFuture = processors.get(processor);
         List<ProcessorResponse> iterProcessorResponses = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
         if(iterProcessorResponses != null && !iterProcessorResponses.isEmpty()) {
-          if(isLeafNode(processor.childProcessorMap) || stopCondition()) { //Add only leaf node responses
+          if(isLeafNode(processor.getChildProcessorMap()) || stopCondition()) { //Add only leaf node responses
             iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
             argProcessorResponses.addAll(iterProcessorResponses); 
           } 
           process(decisionEngineRequest, executor, iterProcessorResponses.get(0), argProcessorResponses,
-              processor.childProcessorMap, (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
+              processor.getChildProcessorMap(), (depth+1), CHILD_PROCESSOR_MAX_WAIT_TIME);          
         }
       } catch (TimeoutException e) {
         processorResponse.setResponseCode(ResponseCode.PR_408);
@@ -97,6 +95,10 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
   private boolean isHttpProcessor(Object obj) {
     return obj instanceof HttpProcessor;
   }
+  
+  private boolean isXlsProcessor(Object obj) {
+    return obj instanceof AbstractXlsProcessor;
+  }
 
   public static ProcessorResponse clone(ProcessorResponse processorResponse) {
     return (ProcessorResponse) SerializationUtils.clone(processorResponse);
@@ -111,10 +113,12 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     return processRules();
   }
 
-  private List<ProcessorResponse> processRules() {
+  @Override
+  public List<ProcessorResponse> processRules() {
     DecisionEngineRequest request = getDERequest();
     processorResponse.setAudit(Audit.getInstance(AUDIT_TYPE_PROCESSOR, this.getClass().getName()));
     if(!processPreRequisite()) {
+      log.info("Prerequisite failed, returning" + this.getClass().getName());
       return null;
     }
     List<ProcessorResponse> processorResponses = new ArrayList<ProcessorResponse>();
@@ -122,11 +126,17 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
       long ruleStartTime = System.nanoTime();
       RuleResponse ruleResponse = rule.process(request, processorResponse);
       ruleResponse.setAuditTime();
-      processorResponse.addRuleResponse(ruleResponse);
+      if(!isXlsProcessor(this)) { //Returns multiple rule responses.
+    	  processorResponse.addRuleResponse(ruleResponse);
+      }
       LogUtil.logAuditTimeMicros("Rule: "+ ruleResponse.getRuleName() +" Timespan(micro):", ruleStartTime);
     }
     if(isHttpProcessor(this)) {
       processorResponses.addAll(((HttpProcessor)this).processorResponses);
+    } else if(isXlsProcessor(this)) {
+        processorResponse.setAuditTime();
+        processorResponses.add(processorResponse);
+        processPostRequisite();
     } else {
       processorResponse.setAuditTime();
       processorResponses.add(processorResponse);
@@ -193,7 +203,7 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     }
     for (String key : argProcessorMap.keySet()) {
       Map<String, Object> childProcessors = null;
-      BaseAbstractProcessor processor = (BaseAbstractProcessor) ObjectUtil.getInstanceByName(key);
+      AbstractProcessor processor = (AbstractProcessor) ObjectUtil.getInstanceByName(key);
       if(isHttpProcessor(processor)) {
         ((HttpProcessor)processor).setParams((String)argProcessorMap.get(key));
       } else {
@@ -213,7 +223,37 @@ public abstract class BaseAbstractProcessor implements Callable<List<ProcessorRe
     return argProcessorResponses;
   }
   
-
+  	public DecisionEngineRequest getDecisionEngineRequest() {
+		return decisionEngineRequest;
+	}
+	
+	public void setDecisionEngineRequest(DecisionEngineRequest decisionEngineRequest) {
+		this.decisionEngineRequest = decisionEngineRequest;
+	}
+	
+	public ProcessorResponse getProcessorResponse() {
+		return processorResponse;
+	}
+	
+	public void setProcessorResponse(ProcessorResponse processorResponse) {
+		this.processorResponse = processorResponse;
+	}
+	
+	public Map<String, Object> getChildProcessorMap() {
+		return childProcessorMap;
+	}
+	
+	public void setChildProcessorMap(Map<String, Object> childProcessorMap) {
+		this.childProcessorMap = childProcessorMap;
+	}
+	
+	public int getDepth() {
+		return depth;
+	}
+	
+	public void setDepth(int depth) {
+		this.depth = depth;
+	}
   protected abstract void buildPrerequistes();
   protected abstract void buildRules();
   protected abstract String getProcessorVersion();
