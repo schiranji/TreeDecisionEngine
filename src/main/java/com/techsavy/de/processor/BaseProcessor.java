@@ -8,10 +8,6 @@ import com.techsavy.de.domain.RuleResponse;
 public class BaseProcessor extends AbstractProcessor {
   private static final Logger log = LogManager.getLogger();
   private static final String PROCESSOR_VERSION = "1.0.0";
-  public BaseProcessor() {
-    buildPrerequistes();
-    buildRules();
-  }
 
   @Override
   protected void buildPrerequistes() {

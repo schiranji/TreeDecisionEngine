@@ -24,13 +24,20 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 	private static final Logger log = LogManager.getLogger();
 
 	public AbstractXlsProcessor() {
-		buildPrerequistes();
-		buildRules();
+		if(prerequisites == null || prerequisites.size() <= 0) {
+			buildPrerequistes();			
+		}
+		if(rules == null || rules.size() == 0) {
+			buildRules();			
+		}
 	}
 
 	private static List<XlsRuleData> rulesList = new ArrayList<>();
 
 	protected void readRulesFile() {
+		if (rulesList != null && rulesList.size() > 0) {
+			return;
+		}
 		String xlsFileName = getRulesFileName();
 		log.info("Loading rules from file in classpath {}", xlsFileName);
 		ExpressionParser parser = new SpelExpressionParser();
@@ -46,12 +53,10 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 				ruleData.setDecision(cellIterator.next().getStringCellValue());
 				while (cellIterator.hasNext()) {
 					Cell cell = cellIterator.next();
-					System.out.print(cell.getStringCellValue() + "\t");
 					Expression expression = parser.parseExpression(cell.getStringCellValue());
 					ruleData.getExpressions().add(expression);
 					rulesList.add(ruleData);
 				}
-				// System.out.println("");
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -64,9 +69,7 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 	@Override
 	protected void buildPrerequistes() {
 		log.debug("Processing XlsProcecssor:buildPrerequistes");
-		if (rulesList == null || rulesList.size() == 0) {
-			readRulesFile();
-		}
+		readRulesFile();
 		prerequisites.add((decisionEngineRequest) -> {
 			PrerequisiteResponse prerequisiteResponse = PrerequisiteResponse.getInstance("XlsProcessor:Prerequiste1");
 			prerequisiteResponse.setPassed(true);
@@ -78,15 +81,17 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 	protected void buildRules() {
 		rulesList.forEach(rule -> {
 			rules.add((decisionEngineRequest, processorResponse) -> {
+				RuleResponse ruleResponse = RuleResponse.getInstance(rule.getRuleName());
 				rule.getExpressions().forEach(expression -> {
-					RuleResponse ruleResponse = RuleResponse.getInstance(rule.getRuleName() + "." + expression.getExpressionString());
-					processorResponse.getDecisionArrivalSteps().put(expression.getExpressionString(),
+					processorResponse.getDecisionArrivalSteps().put(rule.getRuleName()+"."+expression.getExpressionString(),
 							expression.getValue(decisionEngineRequest, Boolean.class).toString());
 					ruleResponse.getAudit().setEndTime(System.currentTimeMillis());
-					processorResponse.addRuleResponse(ruleResponse);
+					processorResponse.setScore(processorResponse.getScore()+1);
+					//processorResponse.addRuleResponse(ruleResponse);
 				});
-				return processorResponse.getRuleResponses().get(0);
+				return ruleResponse;
 			});
 		});
+		log.info("buildRules complete");
 	}
 }

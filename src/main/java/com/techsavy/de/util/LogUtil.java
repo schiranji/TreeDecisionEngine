@@ -28,14 +28,16 @@ public class LogUtil {
       log.debug("**** Results End ***");
     }
   }
-  
   public static String logObject(Logger log, Object object) {
+	  return logObject(log, "", object);
+  }
+  public static String logObject(Logger log, String message, Object object) {
     ObjectMapper mapper = new ObjectMapper();
     mapper.setSerializationInclusion(Inclusion.NON_EMPTY);
     ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
     try {
       String json = ow.writeValueAsString(object);
-      log.debug(json);
+      log.debug(message + ":" + json);
       return json;
     } catch (IOException e) {
       log.error("Error while printing Object.", e);
@@ -63,8 +65,10 @@ public class LogUtil {
   }
 
   public static long logAuditTimeMicros(String messsage, long ruleStartTime) {
-    long timeSpan = (System.nanoTime()-ruleStartTime)/1000;
-    auditLog.info(AUDIT_MARKER, messsage + timeSpan);
+	long endTime = System.nanoTime();
+    long timeSpan = (endTime - ruleStartTime)/1000;
+    //auditLog.info(AUDIT_MARKER, endTime + "-" + ruleStartTime+"="+timeSpan);
+    auditLog.info(AUDIT_MARKER, messsage + " Timespan(micro): " + timeSpan);
     return timeSpan;
   }
 

@@ -33,8 +33,8 @@ public abstract class AbstractProcessor implements ProcessorInt {
   public ProcessorResponse processorResponse;
   public Map<String, Object> childProcessorMap;
   public int depth = 0;
-  protected List<Rule> rules = new ArrayList<Rule>();
-  protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
+  protected static List<Rule> rules = new ArrayList<Rule>();
+  protected static List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
   protected List<Postrequisite> postrequisites = new ArrayList<Postrequisite>();
  
   public void setProcessorData(DecisionEngineRequest decisionEngineRequest, ProcessorInt processor, ProcessorResponse argProcessorResponse,
@@ -96,10 +96,6 @@ public abstract class AbstractProcessor implements ProcessorInt {
     return obj instanceof HttpProcessor;
   }
   
-  private boolean isXlsProcessor(Object obj) {
-    return obj instanceof AbstractXlsProcessor;
-  }
-
   public static ProcessorResponse clone(ProcessorResponse processorResponse) {
     return (ProcessorResponse) SerializationUtils.clone(processorResponse);
   }
@@ -126,17 +122,11 @@ public abstract class AbstractProcessor implements ProcessorInt {
       long ruleStartTime = System.nanoTime();
       RuleResponse ruleResponse = rule.process(request, processorResponse);
       ruleResponse.setAuditTime();
-      if(!isXlsProcessor(this)) { //Returns multiple rule responses.
-    	  processorResponse.addRuleResponse(ruleResponse);
-      }
-      LogUtil.logAuditTimeMicros("Rule: "+ ruleResponse.getRuleName() +" Timespan(micro):", ruleStartTime);
+      processorResponse.addRuleResponse(ruleResponse);
+      LogUtil.logAuditTimeMicros("Rule: "+ ruleResponse.getRuleName(), ruleStartTime);
     }
     if(isHttpProcessor(this)) {
       processorResponses.addAll(((HttpProcessor)this).processorResponses);
-    } else if(isXlsProcessor(this)) {
-        processorResponse.setAuditTime();
-        processorResponses.add(processorResponse);
-        processPostRequisite();
     } else {
       processorResponse.setAuditTime();
       processorResponses.add(processorResponse);
