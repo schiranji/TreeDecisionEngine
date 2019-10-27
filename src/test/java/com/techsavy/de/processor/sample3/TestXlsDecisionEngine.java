@@ -28,7 +28,7 @@ public class TestXlsDecisionEngine implements Constants {
 	      auditLog.info("Milti Threading time(millis):" + (System.currentTimeMillis()-startTime));
 	      LogUtil.logObject(log, decisionEngineResponse);    
 	    }
-	    /*for(int i=0;i<REPEAT_COUNT;i++) {
+	    for(int i=0;i<REPEAT_COUNT;i++) {
 	      startTime = System.currentTimeMillis();
 	      DecisionEngineRequestXls decisionEngineRequest = new DecisionEngineRequestXls();
 	      decisionEngineRequest.setDelinquencies(i);
@@ -37,7 +37,7 @@ public class TestXlsDecisionEngine implements Constants {
 	      DecisionEngineResponse decisionEngineResponse = de.processSequentially();
 	      auditLog.info("Single Threading time(millis):" + (System.currentTimeMillis()-startTime));
 	      LogUtil.logObject(log, decisionEngineResponse); 
-	    }*/
+	    }
 	    System.out.println("Done...");
 	  }
 }
