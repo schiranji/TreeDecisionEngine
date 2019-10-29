@@ -5,6 +5,7 @@ public class RuleResponse extends ResponseAbstract {
   private static final long serialVersionUID = 8508197356680409469L;
   private static final String AUDIT_TYPE_RULE = "Rule";
   private String ruleName;
+  private boolean ruleResult;
 
   private RuleResponse() {
   }
@@ -22,6 +23,14 @@ public class RuleResponse extends ResponseAbstract {
 
   public void setRuleName(String ruleName) {
     this.ruleName = ruleName;
+  }
+
+  public boolean isRuleResult() {
+	return ruleResult;
+  }
+
+  public void setRuleResult(boolean ruleResult) {
+	this.ruleResult = ruleResult;
   }
 
   @Override

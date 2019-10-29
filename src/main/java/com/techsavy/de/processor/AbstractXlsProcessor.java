@@ -16,6 +16,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
+import com.techsavy.de.domain.PostrequisiteResponse;
 import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.RuleResponse;
 import com.techsavy.de.domain.XlsRuleData;
@@ -23,16 +24,9 @@ import com.techsavy.de.domain.XlsRuleData;
 public abstract class AbstractXlsProcessor extends BaseProcessor {
 	private static final Logger log = LogManager.getLogger();
 
-	public AbstractXlsProcessor() {
-		if(prerequisites == null || prerequisites.size() <= 0) {
-			buildPrerequistes();			
-		}
-		if(rules == null || rules.size() == 0) {
-			buildRules();			
-		}
-	}
-
 	private static List<XlsRuleData> rulesList = new ArrayList<>();
+	private static List<XlsRuleData> actionsList = new ArrayList<>();
+	private static int conditionsCount = 0;
 
 	protected void readRulesFile() {
 		if (rulesList != null && rulesList.size() > 0) {
@@ -45,23 +39,47 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 				XSSFWorkbook myWorkBook = new XSSFWorkbook(inputStream);) {
 			XSSFSheet mySheet = myWorkBook.getSheetAt(0);
 			Iterator<Row> rowIterator = mySheet.iterator(); // Traversing over each row of XLSX file
+			conditionsCount = getConditionCount(rowIterator.next());
 			while (rowIterator.hasNext()) {
 				Row row = rowIterator.next(); // For each row, iterate through each columns
 				Iterator<Cell> cellIterator = row.cellIterator();
 				XlsRuleData ruleData = new XlsRuleData();
 				ruleData.setRuleName(cellIterator.next().getStringCellValue());
-				ruleData.setDecision(cellIterator.next().getStringCellValue());
-				while (cellIterator.hasNext()) {
+				//ruleData.setDecision(cellIterator.next().getStringCellValue());
+				for (int i=0; cellIterator.hasNext(); i++) {
 					Cell cell = cellIterator.next();
 					Expression expression = parser.parseExpression(cell.getStringCellValue());
-					ruleData.getExpressions().add(expression);
-					rulesList.add(ruleData);
+					if(i < conditionsCount) {
+						ruleData.getConditions().add(expression);
+						rulesList.add(ruleData);
+					} else {
+						ruleData.getActions().add(expression);
+						actionsList.add(ruleData);						
+					}
 				}
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		log.debug("readRulesFile complete.");
+	}
+
+	private int getConditionCount(Row row) {
+		Iterator<Cell> cellIterator = row.cellIterator();
+		int conditionIndex = 0;
+		while (cellIterator.hasNext()) {
+			Cell cell = cellIterator.next();
+			if(conditionIndex == 0) { //Blank cell
+				conditionIndex++;
+				continue;
+			}
+			if("Condition".equalsIgnoreCase(cell.getStringCellValue())) {
+				conditionIndex++;
+				continue;
+			}
+		}
+		return conditionIndex;
 	}
 
 	public abstract String getRulesFileName();
@@ -82,16 +100,34 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 		rulesList.forEach(rule -> {
 			rules.add((decisionEngineRequest, processorResponse) -> {
 				RuleResponse ruleResponse = RuleResponse.getInstance(rule.getRuleName());
-				rule.getExpressions().forEach(expression -> {
+				rule.getConditions().forEach(expression -> {
+					Boolean conditionResult = expression.getValue(decisionEngineRequest, Boolean.class);
 					processorResponse.getDecisionArrivalSteps().put(rule.getRuleName()+"."+expression.getExpressionString(),
-							expression.getValue(decisionEngineRequest, Boolean.class).toString());
-					ruleResponse.getAudit().setEndTime(System.currentTimeMillis());
+							conditionResult.toString());
+					//ruleResponse.getAudit().setEndTime(System.currentTimeMillis());
+					ruleResponse.setRuleResult(conditionResult);
 					processorResponse.setScore(processorResponse.getScore()+1);
-					//processorResponse.addRuleResponse(ruleResponse);
 				});
 				return ruleResponse;
 			});
 		});
 		log.info("buildRules complete");
+	}
+	
+	@Override
+	protected void buildActions() {
+		actionsList.forEach(action -> {
+			postActions.add((decisionEngineRequest, processorResponse) -> {
+				PostrequisiteResponse postrequisiteResponse = PostrequisiteResponse.getInstance(action.getRuleName());
+				action.getActions().forEach(expression -> {
+					Object actionResult = expression.getValue(processorResponse);
+					processorResponse.getDecisionArrivalSteps().put(action.getRuleName()+"."+expression.getExpressionString(),
+							actionResult.toString());
+					//postrequisiteResponse.setRuleResult(conditionResult);
+				});
+				return postrequisiteResponse;
+			});			
+		});
+		log.info("buildActions complete");
 	}
 }

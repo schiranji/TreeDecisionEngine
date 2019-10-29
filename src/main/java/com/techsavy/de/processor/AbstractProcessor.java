@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import com.techsavy.de.common.ResponseCode;
 import com.techsavy.de.domain.Audit;
 import com.techsavy.de.domain.DecisionEngineRequest;
+import com.techsavy.de.domain.PostrequisiteResponse;
 import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.ProcessorResponse;
 import com.techsavy.de.domain.RuleResponse;
@@ -35,7 +36,19 @@ public abstract class AbstractProcessor implements ProcessorInt {
   public int depth = 0;
   protected static List<Rule> rules = new ArrayList<Rule>();
   protected static List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
-  protected List<Postrequisite> postrequisites = new ArrayList<Postrequisite>();
+  protected List<Postrequisite> postActions = new ArrayList<Postrequisite>();
+  
+	public AbstractProcessor() {
+		if(prerequisites == null || prerequisites.size() <= 0) {
+			buildPrerequistes();			
+		}
+		if(rules == null || rules.size() <= 0) {
+			buildRules();			
+		}
+		if(postActions == null || postActions.size() <= 0) {
+			buildActions();			
+		}
+	}
  
   public void setProcessorData(DecisionEngineRequest decisionEngineRequest, ProcessorInt processor, ProcessorResponse argProcessorResponse,
       Map<String, Object> argProcessorMap, int depth) {
@@ -130,7 +143,7 @@ public abstract class AbstractProcessor implements ProcessorInt {
     } else {
       processorResponse.setAuditTime();
       processorResponses.add(processorResponse);
-      processPostRequisite();
+      processPostActions();
     }
     return processorResponses;
   }
@@ -160,21 +173,17 @@ public abstract class AbstractProcessor implements ProcessorInt {
     return true;
   }
   
-  protected boolean processPostRequisite() {
-    if(postrequisites != null) {
+  protected void processPostActions() {
+    if(postActions != null) {
       final DecisionEngineRequest request = getDERequest();
       //TODO ?? start storing request and results
       //TODO ?? Check if Processor version is same as previously stored request then return prev results instead of processing again.
-      for(Prerequisite prerequisite: prerequisites) {
-        PrerequisiteResponse prerequisiteResponse = prerequisite.process(request);
-        prerequisiteResponse.setAuditTime();
-        processorResponse.addPrerequisiteResponse(prerequisiteResponse);
-        if(!prerequisiteResponse.isPassed()) {
-          return false;
-        }
+      for(Postrequisite postrequisite: postActions) {
+        PostrequisiteResponse postrequisiteResponses = postrequisite.process(request, processorResponse);
+        postrequisiteResponses.setAuditTime();
+        processorResponse.addPostrequisiteResponses(postrequisiteResponses);
       }
     }
-    return true;
   }
 
   private boolean isLeafNode(Map<String, Object> childProcessors) {
@@ -246,5 +255,6 @@ public abstract class AbstractProcessor implements ProcessorInt {
 	}
   protected abstract void buildPrerequistes();
   protected abstract void buildRules();
+  protected abstract void buildActions();
   protected abstract String getProcessorVersion();
 }

@@ -31,6 +31,11 @@ public class MasterHomeApprovalProcessor extends AbstractProcessor {
   }
   
   @Override
+  protected void buildActions() {
+  	
+  }
+
+  @Override
   protected String getProcessorVersion() {
     return PROCESSOR_VERSION;
   }

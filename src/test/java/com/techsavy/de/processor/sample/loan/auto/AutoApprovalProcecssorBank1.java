@@ -30,6 +30,10 @@ public class AutoApprovalProcecssorBank1 extends AbstractProcessor {
       return ruleResponse;
     });
   }
+  @Override
+  protected void buildActions() {
+  	
+  }
 
   @Override
   protected String getProcessorVersion() {

@@ -21,6 +21,7 @@ public class ProcessorResponse extends ResponseAbstract {
   private ResponseCode responseCode = ResponseCode.PR_200;
   private List<PrerequisiteResponse> prerequisiteResponses = new ArrayList<PrerequisiteResponse>();
   private List<RuleResponse> ruleResponses = new ArrayList<RuleResponse>();
+  private List<PostrequisiteResponse> postrequisiteResponses = new ArrayList<PostrequisiteResponse>();
   private Map<String, String> decisionArrivalSteps = new HashMap<>();
   
   public int getScore() {
@@ -81,7 +82,18 @@ public class ProcessorResponse extends ResponseAbstract {
   public void addPrerequisiteResponse(PrerequisiteResponse prerequisiteResponse) {
     this.prerequisiteResponses.add(prerequisiteResponse);
   }
-  @Override
+  
+  public List<PostrequisiteResponse> getPostrequisiteResponses() {
+	return postrequisiteResponses;
+  }
+  public void setPostrequisiteResponses(List<PostrequisiteResponse> postrequisiteResponses) {
+	this.postrequisiteResponses = postrequisiteResponses;
+  }
+  public void addPostrequisiteResponses(PostrequisiteResponse postrequisiteResponses) {
+	this.postrequisiteResponses.add(postrequisiteResponses);
+  }
+
+@Override
   public String getType() {
     return AUDIT_TYPE_PROCESSOR;
   }

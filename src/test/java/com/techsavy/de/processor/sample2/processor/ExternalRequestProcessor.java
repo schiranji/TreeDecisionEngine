@@ -39,6 +39,10 @@ public class ExternalRequestProcessor extends AbstractProcessor {
     });
   }
   
+  @Override
+  protected void buildActions() {
+  	
+  }
   
   @Override
   protected String getProcessorVersion() {
