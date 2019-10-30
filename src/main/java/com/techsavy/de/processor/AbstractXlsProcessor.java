@@ -27,7 +27,7 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 	private static List<XlsRuleData> rulesList = new ArrayList<>();
 	private static List<XlsRuleData> actionsList = new ArrayList<>();
 	private static int conditionsCount = 0;
-
+	
 	protected void readRulesFile() {
 		if (rulesList != null && rulesList.size() > 0) {
 			return;
@@ -101,11 +101,11 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 			rules.add((decisionEngineRequest, processorResponse) -> {
 				RuleResponse ruleResponse = RuleResponse.getInstance(rule.getRuleName());
 				rule.getConditions().forEach(expression -> {
+					log.debug("Processing XlsProcessor:" + rule.getRuleName() + ":" + expression.getExpressionString());
 					Boolean conditionResult = expression.getValue(decisionEngineRequest, Boolean.class);
 					processorResponse.getDecisionArrivalSteps().put(rule.getRuleName()+"."+expression.getExpressionString(),
 							conditionResult.toString());
-					//ruleResponse.getAudit().setEndTime(System.currentTimeMillis());
-					ruleResponse.setRuleResult(conditionResult);
+					if(!conditionResult) { ruleResponse.setRuleResult(conditionResult); }
 					processorResponse.setScore(processorResponse.getScore()+1);
 				});
 				return ruleResponse;
@@ -123,7 +123,6 @@ public abstract class AbstractXlsProcessor extends BaseProcessor {
 					Object actionResult = expression.getValue(processorResponse);
 					processorResponse.getDecisionArrivalSteps().put(action.getRuleName()+"."+expression.getExpressionString(),
 							actionResult.toString());
-					//postrequisiteResponse.setRuleResult(conditionResult);
 				});
 				return postrequisiteResponse;
 			});			

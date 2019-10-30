@@ -82,7 +82,7 @@ public abstract class AbstractProcessor implements ProcessorInt {
     for(ProcessorInt processor:processors.keySet()) {
       try {
         Future<List<ProcessorResponse>> processorFuture = processors.get(processor);
-        List<ProcessorResponse> iterProcessorResponses = processorFuture.get(maxWaitTimeSeconds, TimeUnit.SECONDS);
+        List<ProcessorResponse> iterProcessorResponses = processorFuture.get(maxWaitTimeSeconds, TimeUnit.HOURS);
         if(iterProcessorResponses != null && !iterProcessorResponses.isEmpty()) {
           if(isLeafNode(processor.getChildProcessorMap()) || stopCondition()) { //Add only leaf node responses
             iterProcessorResponses.get(0).setProcessor(processor.getClass().getName());
@@ -141,9 +141,9 @@ public abstract class AbstractProcessor implements ProcessorInt {
     if(isHttpProcessor(this)) {
       processorResponses.addAll(((HttpProcessor)this).processorResponses);
     } else {
-      processorResponse.setAuditTime();
-      processorResponses.add(processorResponse);
       processPostActions();
+      processorResponses.add(processorResponse);
+      processorResponse.setAuditTime();
     }
     return processorResponses;
   }

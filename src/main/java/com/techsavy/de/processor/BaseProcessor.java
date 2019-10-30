@@ -15,12 +15,12 @@ public class BaseProcessor extends AbstractProcessor {
   
   @Override
   protected void buildRules() {
-    rules.add((argDecisionEngineRequest, processorResponse) -> {
+    /*rules.add((argDecisionEngineRequest, processorResponse) -> {
       RuleResponse ruleResponse = RuleResponse.getInstance("BaseProcessor:Rule1");
       log.debug("Processing BaseProcessor:Rule1: Score: "+processorResponse.getScore() +" depth:"+depth); 
       processorResponse.setScore(processorResponse.getScore()+1);
       return ruleResponse;
-    });
+    });*/
   }
   @Override
   protected void buildActions() {

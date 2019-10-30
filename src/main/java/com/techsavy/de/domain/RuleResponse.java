@@ -5,7 +5,7 @@ public class RuleResponse extends ResponseAbstract {
   private static final long serialVersionUID = 8508197356680409469L;
   private static final String AUDIT_TYPE_RULE = "Rule";
   private String ruleName;
-  private boolean ruleResult;
+  private boolean ruleResult = true;
 
   private RuleResponse() {
   }
