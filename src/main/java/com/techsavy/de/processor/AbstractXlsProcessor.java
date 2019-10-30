@@ -21,7 +21,7 @@ import com.techsavy.de.domain.PrerequisiteResponse;
 import com.techsavy.de.domain.RuleResponse;
 import com.techsavy.de.domain.XlsRuleData;
 
-public abstract class AbstractXlsProcessor extends BaseProcessor {
+public abstract class AbstractXlsProcessor extends AbstractProcessor {
 	private static final Logger log = LogManager.getLogger();
 
 	private static List<XlsRuleData> rulesList = new ArrayList<>();
