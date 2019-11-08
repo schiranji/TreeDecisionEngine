@@ -34,12 +34,15 @@ public abstract class AbstractProcessor implements ProcessorInt {
   public ProcessorResponse processorResponse;
   public Map<String, Object> childProcessorMap;
   public int depth = 0;
-  protected static List<Rule> rules = new ArrayList<Rule>();
-  protected static List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
+  protected List<Rule> rules = new ArrayList<Rule>();
+  protected List<Prerequisite> prerequisites = new ArrayList<Prerequisite>();
   protected List<Postrequisite> postActions = new ArrayList<Postrequisite>();
   
 	public AbstractProcessor() {
-		if(prerequisites == null || prerequisites.size() <= 0) {
+		buildPrerequistes();
+		buildRules();
+		buildActions();
+		/*if(prerequisites == null || prerequisites.size() <= 0) {
 			buildPrerequistes();			
 		}
 		if(rules == null || rules.size() <= 0) {
@@ -47,7 +50,7 @@ public abstract class AbstractProcessor implements ProcessorInt {
 		}
 		if(postActions == null || postActions.size() <= 0) {
 			buildActions();			
-		}
+		}*/
 	}
  
   public void setProcessorData(DecisionEngineRequest decisionEngineRequest, ProcessorInt processor, ProcessorResponse argProcessorResponse,

@@ -38,6 +38,7 @@ public class DecisionEngine implements Callable<DecisionEngineResponse>, Constan
     Yaml yaml = new Yaml();
     String configFileName = System.getProperty(PROCESSORS_FILE_PARAM_NAME);
     configFileName = (StringUtils.isNotBlank(configFileName)) ? configFileName : DEFAULT_PROCESSOR_CONFIG_FILE_NAME;
+    log.info("Processor Config File Name: {}", configFileName);
     try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFileName);) {
       processorNamesMap = yaml.load(inputStream);
       LogUtil.logYml(log, processorNamesMap);
